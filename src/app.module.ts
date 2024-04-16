@@ -13,6 +13,8 @@ import { ZoneEntity } from './zones/zone.entity';
 import { ModuleZoneEntity } from './module-zone/module-zone.entity';
 import { CategoryModule } from './category/category.module';
 import { CategoryEntity } from './category/category.entity';
+import { SubCategoryModule } from './sub-category/sub-category.module';
+import { SubCategoryEntity } from './sub-category/sub-category.entity';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { CategoryEntity } from './category/category.entity';
       username: 'root',
       password: 'mypassword',
       database: 'multi',
-      entities: [UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity, CategoryEntity],
+      entities: [UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity, CategoryEntity, SubCategoryEntity],
       synchronize: true,
     }),
     UsersModule,
@@ -32,6 +34,7 @@ import { CategoryEntity } from './category/category.entity';
     ZonesModule,
     ModuleZoneModule,
     CategoryModule,
+    SubCategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

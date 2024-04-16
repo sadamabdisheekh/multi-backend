@@ -14,8 +14,6 @@ export class CategoryService {
     const category = this.categoryRepository.create({
       name: payload.name,
       image: payload.image,
-      parent_id: payload.parent_id,
-      position: payload.position,
       priority: payload.priority,
       created_at: new Date()
     })
@@ -23,9 +21,7 @@ export class CategoryService {
   }
 
   async findAll() {
-    return await this.categoryRepository.find({
-      relations: ['children']
-    });
+    return await this.categoryRepository.find();
   }
 
   findOne(id: number) {

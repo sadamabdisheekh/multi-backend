@@ -1,4 +1,5 @@
 import { ModuleEntity } from 'src/modules/module.entity';
+import { SubCategoryEntity } from 'src/sub-category/sub-category.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('categories')
@@ -12,12 +13,6 @@ export class CategoryEntity {
     @Column()
     image: string;
 
-    @Column({ nullable: true, default: null })
-    parent_id: number;
-
-    @Column({ default: 0 })
-    position: number;
-
     @Column({ default: true })
     status: boolean;
 
@@ -30,10 +25,7 @@ export class CategoryEntity {
     @Column({ default: 0 })
     priority: number;
 
-    @ManyToOne(() => CategoryEntity, parent => parent.children)
-    parent: CategoryEntity;
-
-    @OneToMany(() => CategoryEntity, children => children.parent)
-    children: CategoryEntity[];
+    @OneToMany(() => SubCategoryEntity, module => module.category)
+    subCategory: SubCategoryEntity[];
 
 }
