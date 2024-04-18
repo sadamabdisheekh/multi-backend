@@ -35,9 +35,10 @@ export class UsersService {
 
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll() {
+    return await this.userRepository.find();
   }
+
 
   async findByMobileAndPassword(mobile: string, pass: any) {
     const hashedPassword = crypto.createHmac('sha256', pass).digest('hex');
