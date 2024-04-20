@@ -15,9 +15,13 @@ import { CategoryModule } from './category/category.module';
 import { CategoryEntity } from './category/category.entity';
 import { SubCategoryModule } from './sub-category/sub-category.module';
 import { SubCategoryEntity } from './sub-category/sub-category.entity';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
+    MulterModule.register({
+      dest: './uploads', // Destination folder for uploaded files
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',

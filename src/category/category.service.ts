@@ -4,6 +4,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { join } from 'path';
 
 @Injectable()
 export class CategoryService {
@@ -21,7 +22,13 @@ export class CategoryService {
   }
 
   async findAll() {
-    return await this.categoryRepository.find();
+    let path = join(process.cwd()) + "/uploads/category/";
+    const categories = await this.categoryRepository.find();
+    const categoryLists = categories.map(item => {
+      item.image = path + item.image;
+      return item;
+    });
+    return categoryLists;
   }
 
   findOne(id: number) {
