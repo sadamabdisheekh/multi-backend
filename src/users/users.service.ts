@@ -4,10 +4,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './user.entity';
 import * as crypto from 'crypto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(UserEntity) private userRepository: Repository<UserEntity>) {
+  constructor(
+    @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
+    private jwtService: JwtService
+  ) {
   }
 
   async create(payload: UserDto) {
@@ -31,7 +35,18 @@ export class UsersService {
       password: hashPassword
     })
 
-    return await this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    const userData = {
+      userId: savedUser.userId,
+      firstName: savedUser.firstName,
+      lastName: savedUser.lastName,
+      phone: savedUser.mobile,
+      accessToken: null
+    };
+    const accessToken = await this.jwtService.signAsync(userData);
+    userData.accessToken = accessToken;
+    return userData;
 
   }
 
