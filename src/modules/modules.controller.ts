@@ -1,16 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, ParseFilePipeBuilder, UploadedFile, HttpStatus, HttpException } from '@nestjs/common';
 import { ModulesService } from './modules.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { getFileUploadConfig } from 'src/common/file-upload.config';
 
 @Controller('modules')
 export class ModulesController {
   constructor(private readonly modulesService: ModulesService) { }
 
   @Post()
-  create(@Body() createModuleDto: CreateModuleDto) {
-    return this.modulesService.create(createModuleDto);
+  @UseInterceptors(FileInterceptor('file', getFileUploadConfig('module')))
+  create(
+    @UploadedFile()
+    file: Express.Multer.File,
+    @Body() body: CreateModuleDto
+  ) {
+    body.image = file.filename;
+    return this.modulesService.create(body);
   }
+
+
 
 
   @Get(':id')

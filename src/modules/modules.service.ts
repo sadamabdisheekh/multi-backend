@@ -12,14 +12,12 @@ export class ModulesService {
   }
 
   async create(payload: CreateModuleDto) {
-    const { module_name, module_type, thumbnail, icon, description, created_at, updated_at } = payload;
+    const { module_name, image, description } = payload;
 
     const module = this.moduleRepository.create({
       module_name: module_name,
-      module_type: module_type,
-      thumbnail: thumbnail ?? '',
-      icon: icon ?? '',
-      description: description ?? '',
+      image: image,
+      description: description,
       created_at: new Date()
     });
     return await this.moduleRepository.save(module);

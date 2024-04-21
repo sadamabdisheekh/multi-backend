@@ -9,11 +9,8 @@ export class ModuleEntity {
     @Column()
     module_name: string;
 
-    @Column()
-    module_type: string;
-
     @Column({ nullable: true })
-    thumbnail: string;
+    image: string;
 
     @Column({ default: true })
     status: boolean;
