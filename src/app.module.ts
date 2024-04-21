@@ -16,6 +16,9 @@ import { CategoryEntity } from './category/category.entity';
 import { SubCategoryModule } from './sub-category/sub-category.module';
 import { SubCategoryEntity } from './sub-category/sub-category.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 
 @Module({
   imports: [
@@ -24,13 +27,17 @@ import { MulterModule } from '@nestjs/platform-express';
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
+      host: '127.0.0.1',
       port: 3306,
       username: 'root',
-      password: 'mypassword',
+      password: 'Laab@123',
       database: 'multi',
       entities: [UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity, CategoryEntity, SubCategoryEntity],
       synchronize: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // Adjust the path based on your project structure
+      serveRoot: '/uploads', // Specify the base URL for serving static files
     }),
     UsersModule,
     AuthModule,

@@ -22,14 +22,12 @@ export class CategoryService {
   }
 
   async findAll() {
-    let path = join(process.cwd()) + "/uploads/category/";
     const categories = await this.categoryRepository.find();
-    const categoryLists = categories.map(item => {
-      item.image = path + item.image;
-      return item;
-    });
-    return categoryLists;
+
+    return categories;
   }
+
+
 
   findOne(id: number) {
     return `This action returns a #${id} category`;
