@@ -18,6 +18,10 @@ import { SubCategoryEntity } from './sub-category/sub-category.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ChildSubCategoryModule } from './child-sub-category/child-sub-category.module';
+import { ItemsModule } from './items/items.module';
+import { ChildSubCategoryEntity } from './child-sub-category/entities/child-sub-category.entity';
+import { ItemsEntity } from './items/entities/item.entity';
 
 
 @Module({
@@ -32,11 +36,13 @@ import { join } from 'path';
       username: 'root',
       password: 'mypassword',
       database: 'multi',
-      entities: [UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity, CategoryEntity, SubCategoryEntity],
+      entities: [
+        UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
+        CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity, ItemsEntity],
       synchronize: true,
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // Adjust the path based on your project structure
+      rootPath: join(__dirname, '..', 'uploads'), // Specify the path to the uploads directory
       serveRoot: '/uploads', // Specify the base URL for serving static files
     }),
     UsersModule,
@@ -46,6 +52,8 @@ import { join } from 'path';
     ModuleZoneModule,
     CategoryModule,
     SubCategoryModule,
+    ChildSubCategoryModule,
+    ItemsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

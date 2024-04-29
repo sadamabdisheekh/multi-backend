@@ -1,3 +1,4 @@
+import { ItemsEntity } from 'src/items/entities/item.entity';
 import { ModuleEntity } from 'src/modules/module.entity';
 import { SubCategoryEntity } from 'src/sub-category/sub-category.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany } from 'typeorm';
@@ -27,5 +28,8 @@ export class CategoryEntity {
 
     @OneToMany(() => SubCategoryEntity, module => module.category)
     subCategory: SubCategoryEntity[];
+
+    @OneToMany(() => ItemsEntity, item => item.category)
+    items: ItemsEntity[];
 
 }

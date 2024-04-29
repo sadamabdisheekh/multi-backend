@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, ParseFilePipeBuilder, UploadedFile, HttpStatus, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { ModulesService } from './modules.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
@@ -14,14 +14,16 @@ export class ModulesController {
   create(
     @UploadedFile()
     file: Express.Multer.File,
-    @Body() body: CreateModuleDto
+    @Body() body: CreateModuleDto,
   ) {
     body.image = file.filename;
     return this.modulesService.create(body);
   }
 
-
-
+  @Get()
+  findAll() {
+    return this.modulesService.findAll();
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
