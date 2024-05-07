@@ -27,6 +27,13 @@ export class CategoryService {
     return categories;
   }
 
+  async findCategorywithSub(id: number): Promise<any> {
+    return await this.categoryRepository.find({
+      relations: ['subCategory'],
+      where: { status: true, module: { id } }
+    })
+  }
+
 
 
   findOne(id: number) {

@@ -1,12 +1,16 @@
 import { ItemsEntity } from 'src/items/entities/item.entity';
 import { ModuleEntity } from 'src/modules/module.entity';
 import { SubCategoryEntity } from 'src/sub-category/sub-category.entity';
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 
 @Entity('categories')
 export class CategoryEntity {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @ManyToOne(() => ModuleEntity, module => module.category)
+    @JoinColumn({ name: 'moduleId' })
+    module: ModuleEntity;
 
     @Column()
     name: string;

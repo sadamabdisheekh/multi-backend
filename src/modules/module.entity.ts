@@ -1,3 +1,4 @@
+import { CategoryEntity } from 'src/category/category.entity';
 import { ModuleZoneEntity } from 'src/module-zone/module-zone.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
@@ -27,6 +28,9 @@ export class ModuleEntity {
 
     @Column({ nullable: true })
     updated_at: Date;
+
+    @OneToMany(() => CategoryEntity, cat => cat.module)
+    category: CategoryEntity[];
 
     @OneToMany(() => ModuleEntity, module => module.moduleZones)
     moduleZones: ModuleZoneEntity[];

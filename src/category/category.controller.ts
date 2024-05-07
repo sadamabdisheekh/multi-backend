@@ -36,6 +36,11 @@ export class CategoryController {
     return this.categoryService.findAll();
   }
 
+  @Get('/categorywithsub/:id')
+  findCategoryWithSub(@Param('id') moduleId: number) {
+    return this.categoryService.findCategorywithSub(moduleId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(+id);

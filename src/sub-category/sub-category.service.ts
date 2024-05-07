@@ -1,11 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
+import { SubCategoryEntity } from './sub-category.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class SubCategoryService {
-  create(createSubCategoryDto: CreateSubCategoryDto) {
-    return 'This action adds a new subCategory';
+
+  constructor(@InjectRepository(SubCategoryEntity) private subcatRepository: Repository<SubCategoryEntity>) {
+  }
+
+  create(payload: CreateSubCategoryDto) {
+    const data = this.subcatRepository.create({
+      subCategoryName: payload.subCategoryName,
+      category: {id: payload.categoryId}
+    })
   }
 
   findAll() {
