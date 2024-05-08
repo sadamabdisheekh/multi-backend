@@ -48,6 +48,6 @@ export class ModulesService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} module`;
+    return this.moduleRepository.delete(id);
   }
 }
