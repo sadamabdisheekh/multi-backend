@@ -13,6 +13,7 @@ export class CategoryService {
 
   async create(payload: CreateCategoryDto) {
     const category = this.categoryRepository.create({
+      module: {id:  payload.moduleId},
       name: payload.name,
       image: payload.image,
       priority: payload.priority,
@@ -21,18 +22,25 @@ export class CategoryService {
     return await this.categoryRepository.save(category);
   }
 
-  async findAll() {
-    const categories = await this.categoryRepository.find();
+  // async findCategorywithSub(id: number): Promise<any> {
+  //   return await this.categoryRepository.find({
+  //     relations: ['subCategory'],
+  //     where: { status: true, module: { id } }
+  //   })
+  // }
 
-    return categories;
+  async findCategoryWithSub(): Promise<any> {
+    const categoriesWithSub = await this.categoryRepository
+    .createQueryBuilder("cat")
+    .leftJoinAndSelect("cat.subCategory", "sub")
+    .where("cat.status = :status", { status: true })
+    .getMany();
+  
+    return categoriesWithSub;
   }
+  
 
-  async findCategorywithSub(id: number): Promise<any> {
-    return await this.categoryRepository.find({
-      relations: ['subCategory'],
-      where: { status: true, module: { id } }
-    })
-  }
+  
 
 
 

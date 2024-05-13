@@ -10,18 +10,13 @@ import { getFileUploadConfig } from 'src/common/file-upload.config';
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
-  @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
-  }
-
 
   @Post('uploads')
   @UseInterceptors(FileInterceptor('file', getFileUploadConfig('category')))
   async uploadFile(
     @UploadedFile(
       new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: 'image/jpeg' })
+        .addFileTypeValidator({ fileType: 'image/png' })
         .build({ errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
     )
     file: Express.Multer.File,
@@ -31,14 +26,15 @@ export class CategoryController {
     return this.categoryService.create(payload);
   }
 
-  @Get()
-  findAll() {
-    return this.categoryService.findAll();
-  }
 
-  @Get('/categorywithsub/:id')
-  findCategoryWithSub(@Param('id') moduleId: number) {
-    return this.categoryService.findCategorywithSub(moduleId);
+  // @Get('/categorywithsub/:id')
+  // findCategoryWithSub(@Param('id') moduleId: number) {
+  //   return this.categoryService.findCategoryWithSub(moduleId);
+  // }
+
+  @Get()
+  findCategoryWithSub() {
+    return this.categoryService.findCategoryWithSub();
   }
 
   @Get(':id')

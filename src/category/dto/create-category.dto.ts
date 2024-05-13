@@ -1,8 +1,11 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsNumber } from "class-validator";
 
 export class CreateCategoryDto {
     @IsNotEmpty()
     name: string;
+
+    @IsNotEmpty()
+    moduleId: number;
 
     image: string;
 
