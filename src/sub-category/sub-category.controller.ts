@@ -12,10 +12,16 @@ export class SubCategoryController {
     return this.subCategoryService.create(createSubCategoryDto);
   }
 
+  @Get('findSubCategory/:category')
+  findSubCategory(@Param('category') category: number) {
+      return this.subCategoryService.findSubCategory(category);
+  }
+
   @Get()
   findAll() {
     return this.subCategoryService.findAll();
   }
+  
 
   @Get(':id')
   findOne(@Param('id') id: string) {

@@ -12,7 +12,7 @@ export class SubCategoryEntity {
   category: CategoryEntity;
   @Column()
   subCategoryName: string;
-  @Column()
+  @Column({nullable:true})
   image: string;
   @Column({ default: true })
   status: boolean;

@@ -18,14 +18,26 @@ export class ItemsEntity {
     created_at: Date;
 
     @ManyToOne(() => CategoryEntity, category => category.items)
-    @JoinColumn({ name: 'categoryId' })
+    @JoinColumn({ name: 'category_id' })
     category: CategoryEntity;
 
     @ManyToOne(() => SubCategoryEntity, subCategory => subCategory.items)
-    @JoinColumn({ name: 'subCategoryId' })
+    @JoinColumn({ name: 'sub_category_id' })
     subCategory: SubCategoryEntity;
 
     @ManyToOne(() => ChildSubCategoryEntity, childSubCategory => childSubCategory.items)
-    @JoinColumn({ name: 'childSubcatId' })
+    @JoinColumn({ name: 'child_subcat_id' })
     childSubCategory: ChildSubCategoryEntity;
+
+    @Column({type: 'decimal'})
+    price: number;
+
+    @Column({type: 'decimal'})
+    discount: number;
+
+    @Column({ type: 'time' })
+    available_time_starts: string;
+
+    @Column({ type: 'time'})
+    available_time_ends: string;
 }

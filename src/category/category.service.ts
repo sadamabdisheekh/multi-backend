@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { join } from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class CategoryService {
@@ -12,6 +12,16 @@ export class CategoryService {
   }
 
   async create(payload: CreateCategoryDto) {
+
+    let isCategoryExists = await this.categoryRepository.findOneBy({name: payload.name});
+    if (isCategoryExists) {
+      const path = 'uploads/category/' + payload.image;
+      if (fs.existsSync(path)) {
+        fs.unlinkSync(path);
+      }
+      throw new NotAcceptableException('this category name already exists');
+    }
+
     const category = this.categoryRepository.create({
       module: {id:  payload.moduleId},
       name: payload.name,

@@ -1,4 +1,5 @@
 import { ModuleZoneEntity } from 'src/module-zone/module-zone.entity';
+import { Store } from 'src/stores/entities/store.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('zone')
@@ -23,5 +24,8 @@ export class ZoneEntity {
 
     @OneToMany(() => ModuleZoneEntity, moduleZone => moduleZone.zone)
     moduleZones: ModuleZoneEntity[];
+
+    @OneToMany(() => Store, store => store.zone)
+    store: Store[];
 
 }

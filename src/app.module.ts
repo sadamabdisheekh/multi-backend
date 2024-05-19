@@ -22,6 +22,8 @@ import { ChildSubCategoryModule } from './child-sub-category/child-sub-category.
 import { ItemsModule } from './items/items.module';
 import { ChildSubCategoryEntity } from './child-sub-category/entities/child-sub-category.entity';
 import { ItemsEntity } from './items/entities/item.entity';
+import { StoresModule } from './stores/stores.module';
+import { Store } from './stores/entities/store.entity';
 
 
 @Module({
@@ -38,7 +40,7 @@ import { ItemsEntity } from './items/entities/item.entity';
       database: 'multi',
       entities: [
         UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
-        CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity, ItemsEntity],
+        CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity, ItemsEntity,Store],
       synchronize: true,
     }),
     ServeStaticModule.forRoot({
@@ -54,6 +56,7 @@ import { ItemsEntity } from './items/entities/item.entity';
     SubCategoryModule,
     ChildSubCategoryModule,
     ItemsModule,
+    StoresModule,
   ],
   controllers: [AppController],
   providers: [AppService],

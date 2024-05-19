@@ -11,11 +11,20 @@ export class SubCategoryService {
   constructor(@InjectRepository(SubCategoryEntity) private subcatRepository: Repository<SubCategoryEntity>) {
   }
 
-  create(payload: CreateSubCategoryDto) {
+  async create(payload: CreateSubCategoryDto) {
     const data = this.subcatRepository.create({
       subCategoryName: payload.subCategoryName,
       category: {id: payload.categoryId}
     })
+
+    return await this.subcatRepository.save(data);
+  }
+
+  async findSubCategory(categoryId: number): Promise<any> { 
+    return await this.subcatRepository.createQueryBuilder('s')
+    .leftJoinAndSelect('s.childSubcat','c')
+    .where('s.status = :status AND s.categoryId = :categoryId', { status: true, categoryId })
+    .getMany();
   }
 
   findAll() {
