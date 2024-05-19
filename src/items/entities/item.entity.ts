@@ -22,7 +22,7 @@ export class ItemsEntity {
     category: CategoryEntity;
 
     @ManyToOne(() => SubCategoryEntity, subCategory => subCategory.items)
-    @JoinColumn({ name: 'sub_category_id' })
+    @JoinColumn({ name: 'sub_category_id', })
     subCategory: SubCategoryEntity;
 
     @ManyToOne(() => ChildSubCategoryEntity, childSubCategory => childSubCategory.items)

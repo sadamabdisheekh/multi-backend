@@ -1,15 +1,46 @@
 import { Injectable } from '@nestjs/common';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
+import { Filter } from './dto/filter.dto';
+import { ItemsEntity } from './entities/item.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CategoryEntity } from 'src/category/category.entity';
 
 @Injectable()
 export class ItemsService {
-  create(createItemDto: CreateItemDto) {
-    return 'This action adds a new item';
+  constructor(
+    @InjectRepository(ItemsEntity) private itemsRepository: Repository<ItemsEntity>,
+    // @InjectRepository(CategoryEntity) private categoriesRepository: Repository<CategoryEntity>,
+  ) {}
+  async create(payload: CreateItemDto) {
+    const items = this.itemsRepository.create( {
+      name: payload.name,
+      description: payload.description,
+      category: {id: payload.categoryId},
+      subCategory: {id: payload.subCategoryId},
+      childSubCategory: {id: payload.childSubCategoryId},
+      created_at: new Date(),
+      price: payload.price,
+      discount: payload.discount,
+      available_time_starts: payload.available_time_starts,
+      available_time_ends: payload.available_time_ends
+    });
+    return await this.itemsRepository.save(items);
   }
 
   findAll() {
     return `This action returns all items`;
+  }
+
+  async findItemsByFilter(filter: Filter) {
+    return await this.itemsRepository.find({
+      where: {
+        category: {id: filter.categoryId},
+        subCategory: {id: filter.subCategoryId},
+        childSubCategory: {id: filter.childSubCategoryId},
+      }
+    })
   }
 
   findOne(id: number) {
