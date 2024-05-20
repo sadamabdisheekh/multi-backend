@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
+import { Filter } from './dto/filter.dto';
 
 @Controller('items')
 export class ItemsController {
@@ -15,6 +16,11 @@ export class ItemsController {
   @Get()
   findAll() {
     return this.itemsService.findAll();
+  }
+
+  @Post('/filter')
+  async findItemsbyFilter(@Body() payload: Filter) {
+    return await this.itemsService.findItemsByFilter(payload);
   }
 
   @Get(':id')

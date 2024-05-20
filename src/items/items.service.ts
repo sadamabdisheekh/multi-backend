@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Filter } from './dto/filter.dto';
@@ -11,15 +11,24 @@ import { CategoryEntity } from 'src/category/category.entity';
 export class ItemsService {
   constructor(
     @InjectRepository(ItemsEntity) private itemsRepository: Repository<ItemsEntity>,
-    // @InjectRepository(CategoryEntity) private categoriesRepository: Repository<CategoryEntity>,
+    @InjectRepository(CategoryEntity)
+    private readonly categoriesRepository: Repository<CategoryEntity>,
   ) {}
   async create(payload: CreateItemDto) {
+    const category = await this.categoriesRepository.findOne({
+      where: {id: payload.categoryId}
+    });
+
+    if (!category) {
+      throw new NotFoundException('category not found');
+    }
+    
     const items = this.itemsRepository.create( {
       name: payload.name,
       description: payload.description,
-      category: {id: payload.categoryId},
-      subCategory: {id: payload.subCategoryId},
-      childSubCategory: {id: payload.childSubCategoryId},
+      category: category,
+      subCategory: null,
+      childSubCategory: null,
       created_at: new Date(),
       price: payload.price,
       discount: payload.discount,

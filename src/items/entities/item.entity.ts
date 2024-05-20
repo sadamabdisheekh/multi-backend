@@ -21,18 +21,18 @@ export class ItemsEntity {
     @JoinColumn({ name: 'category_id' })
     category: CategoryEntity;
 
-    @ManyToOne(() => SubCategoryEntity, subCategory => subCategory.items)
+    @ManyToOne(() => SubCategoryEntity, subCategory => subCategory.items,{nullable:true})
     @JoinColumn({ name: 'sub_category_id', })
     subCategory: SubCategoryEntity;
 
-    @ManyToOne(() => ChildSubCategoryEntity, childSubCategory => childSubCategory.items)
+    @ManyToOne(() => ChildSubCategoryEntity, childSubCategory => childSubCategory.items,{nullable:true})
     @JoinColumn({ name: 'child_subcat_id' })
     childSubCategory: ChildSubCategoryEntity;
 
     @Column({type: 'decimal'})
     price: number;
 
-    @Column({type: 'decimal'})
+    @Column({type: 'decimal',nullable:true})
     discount: number;
 
     @Column({ type: 'time' })
