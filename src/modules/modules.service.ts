@@ -5,6 +5,8 @@ import { ModuleEntity } from './module.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
+import { saveFile } from 'common/utils.file';
+import { UploadedFilePaths } from 'common/enum';
 
 @Injectable()
 export class ModulesService {
@@ -12,21 +14,21 @@ export class ModulesService {
   constructor(@InjectRepository(ModuleEntity) private moduleRepository: Repository<ModuleEntity>) {
   }
 
-  async create(payload: CreateModuleDto) {
-    const { module_name, image, description } = payload;
+  async create(file: Express.Multer.File,payload: CreateModuleDto) {
+
+    const { module_name,description } = payload;
 
     let isModuleExists = await this.moduleRepository.findOneBy({ module_name });
     if (isModuleExists) {
-      const path = 'uploads/module/' + payload.image;
-      if (fs.existsSync(path)) {
-        fs.unlinkSync(path);
-      }
       throw new NotAcceptableException('this module name already exists');
     }
 
+    const savedFile = saveFile(file,UploadedFilePaths.MODULES);
+
+
     const module = this.moduleRepository.create({
       module_name: module_name,
-      image: image,
+      image: savedFile.filename,
       description: description,
       created_at: new Date()
     });

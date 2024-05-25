@@ -4,40 +4,32 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as fs from 'fs';
+import { saveFile } from 'common/utils.file';
+import { UploadedFilePaths } from 'common/enum';
 
 @Injectable()
 export class CategoryService {
   constructor(@InjectRepository(CategoryEntity) private categoryRepository: Repository<CategoryEntity>) {
   }
 
-  async create(payload: CreateCategoryDto) {
+   
+  async create(file: Express.Multer.File,payload: CreateCategoryDto) {
 
-    let isCategoryExists = await this.categoryRepository.findOneBy({name: payload.name});
-    if (isCategoryExists) {
-      const path = 'uploads/category/' + payload.image;
-      if (fs.existsSync(path)) {
-        fs.unlinkSync(path);
-      }
-      throw new NotAcceptableException('this category name already exists');
+    const isCategory = await this.categoryRepository.findOne({where: {name: payload.name}});
+    if (isCategory) {
+      throw new NotAcceptableException('this category already exists');
     }
 
+    const savedFile = saveFile(file,UploadedFilePaths.CATEGERORY);
+
     const category = this.categoryRepository.create({
-      module: {id:  payload.moduleId},
       name: payload.name,
-      image: payload.image,
+      image: savedFile.filename,
       priority: payload.priority,
       created_at: new Date()
     })
     return await this.categoryRepository.save(category);
   }
-
-  // async findCategorywithSub(id: number): Promise<any> {
-  //   return await this.categoryRepository.find({
-  //     relations: ['subCategory'],
-  //     where: { status: true, module: { id } }
-  //   })
-  // }
 
   async findCategoryWithSub(): Promise<any> {
     const categoriesWithSub = await this.categoryRepository

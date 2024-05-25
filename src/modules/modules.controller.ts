@@ -1,23 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Req, BadRequestException } from '@nestjs/common';
 import { ModulesService } from './modules.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { getFileUploadConfig } from 'src/common/file-upload.config';
+import { memoryStorage } from 'multer';
 
 @Controller('modules')
 export class ModulesController {
   constructor(private readonly modulesService: ModulesService) { }
 
-  @Post()
-  @UseInterceptors(FileInterceptor('file', getFileUploadConfig('module')))
-  create(
-    @UploadedFile()
-    file: Express.Multer.File,
-    @Body() body: CreateModuleDto,
+  @Post('uploads')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+  }))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() payload: CreateModuleDto
   ) {
-    body.image = file.filename;
-    return this.modulesService.create(body);
+    if (!file) {
+      throw new BadRequestException('File is not defined');
+    }
+    return this.modulesService.create(file,payload);
   }
 
   @Get()
