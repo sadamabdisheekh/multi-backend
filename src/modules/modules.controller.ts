@@ -9,7 +9,7 @@ import { memoryStorage } from 'multer';
 export class ModulesController {
   constructor(private readonly modulesService: ModulesService) { }
 
-  @Post('uploads')
+  @Post('add')
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
   }))

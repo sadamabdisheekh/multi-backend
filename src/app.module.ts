@@ -43,10 +43,6 @@ import { Store } from './stores/entities/store.entity';
         CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity, ItemsEntity,Store],
       synchronize: true,
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // Specify the path to the uploads directory
-      serveRoot: '/uploads', // Specify the base URL for serving static files
-    }),
     UsersModule,
     AuthModule,
     ModulesModule,

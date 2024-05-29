@@ -6,28 +6,28 @@ export class Store {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 100 })
   name: string;
 
   @Column({ type: 'varchar', length: 20, unique: true })
   phone: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true,unique: true })
+  @Column({ type: 'varchar', length: 50, nullable: true,unique: true })
   email: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   logo: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'double'})
   latitude: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'double'})
   longitude: string;
 
   @Column({ type: 'text', nullable: true })
   address: string;
 
-  @Column({ type: 'decimal'})
+  @Column()
   minimum_order: number;
 
   @Column({ type: 'decimal', nullable: true })
