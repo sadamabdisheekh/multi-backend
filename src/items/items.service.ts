@@ -6,6 +6,7 @@ import { ItemsEntity } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoryEntity } from 'src/category/category.entity';
+import { Store } from 'src/stores/entities/store.entity';
 
 @Injectable()
 export class ItemsService {
@@ -13,21 +14,32 @@ export class ItemsService {
     @InjectRepository(ItemsEntity) private itemsRepository: Repository<ItemsEntity>,
     @InjectRepository(CategoryEntity)
     private readonly categoriesRepository: Repository<CategoryEntity>,
-  ) {}
+    @InjectRepository(Store)
+    private readonly storeRepository: Repository<Store>,
+  ) { }
   async create(payload: CreateItemDto) {
     const category = await this.categoriesRepository.findOne({
-      where: {id: payload.categoryId}
+      where: { id: payload.categoryId }
     });
 
     if (!category) {
       throw new NotFoundException('category not found');
     }
-    
-    const items = this.itemsRepository.create( {
+
+    const existingStore = await this.storeRepository.findOne({
+      where: { id: payload.store_id }
+    });
+
+    if (!existingStore) {
+      throw new NotFoundException(`store with the id ${payload.store_id} not exist`);
+    }
+
+    const items = this.itemsRepository.create({
       name: payload.name,
       description: payload.description,
       category: category,
       subCategory: null,
+      
       childSubCategory: null,
       created_at: new Date(),
       price: payload.price,
@@ -45,9 +57,9 @@ export class ItemsService {
   async findItemsByFilter(filter: Filter) {
     return await this.itemsRepository.find({
       where: {
-        category: {id: filter.categoryId},
-        subCategory: {id: filter.subCategoryId},
-        childSubCategory: {id: filter.childSubCategoryId},
+        category: { id: filter.categoryId },
+        subCategory: { id: filter.subCategoryId },
+        childSubCategory: { id: filter.childSubCategoryId },
       }
     })
   }

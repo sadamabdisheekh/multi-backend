@@ -1,5 +1,6 @@
+import { ItemsEntity } from 'src/items/entities/item.entity';
 import { ZoneEntity } from 'src/zones/zone.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('stores')
 export class Store {
@@ -12,28 +13,28 @@ export class Store {
   @Column({ type: 'varchar', length: 20, unique: true })
   phone: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true,unique: true })
+  @Column({ type: 'varchar', length: 50, unique: true })
   email: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   logo: string;
 
-  @Column({ type: 'double'})
+  @Column({ type: 'double' })
   latitude: string;
 
-  @Column({ type: 'double'})
+  @Column({ type: 'double' })
   longitude: string;
 
   @Column({ type: 'text', nullable: true })
   address: string;
 
-  @Column()
+  @Column({ nullable: true })
   minimum_order: number;
 
   @Column({ type: 'decimal', nullable: true })
   comission: number;
 
-  @Column({default: false})
+  @Column({ default: false })
   status: boolean;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -45,4 +46,7 @@ export class Store {
   @ManyToOne(() => ZoneEntity, zone => zone.store)
   @JoinColumn({ name: 'zone_id' })
   zone: ZoneEntity;
+
+  @OneToMany(() => ItemsEntity, item => item.store)
+  item: ItemsEntity[];
 }

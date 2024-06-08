@@ -1,5 +1,6 @@
 import { CategoryEntity } from "src/category/category.entity";
 import { ChildSubCategoryEntity } from "src/child-sub-category/entities/child-sub-category.entity";
+import { Store } from "src/stores/entities/store.entity";
 import { SubCategoryEntity } from "src/sub-category/sub-category.entity";
 import { PrimaryGeneratedColumn, Column, OneToMany, Entity, ManyToOne, JoinColumn } from "typeorm";
 
@@ -21,23 +22,27 @@ export class ItemsEntity {
     @JoinColumn({ name: 'category_id' })
     category: CategoryEntity;
 
-    @ManyToOne(() => SubCategoryEntity, subCategory => subCategory.items,{nullable:true})
+    @ManyToOne(() => Store, store => store.item)
+    @JoinColumn({ name: 'store_id' })
+    store: Store;
+
+    @ManyToOne(() => SubCategoryEntity, subCategory => subCategory.items, { nullable: true })
     @JoinColumn({ name: 'sub_category_id', })
     subCategory: SubCategoryEntity;
 
-    @ManyToOne(() => ChildSubCategoryEntity, childSubCategory => childSubCategory.items,{nullable:true})
+    @ManyToOne(() => ChildSubCategoryEntity, childSubCategory => childSubCategory.items, { nullable: true })
     @JoinColumn({ name: 'child_subcat_id' })
     childSubCategory: ChildSubCategoryEntity;
 
-    @Column({type: 'decimal'})
+    @Column({ type: 'decimal' })
     price: number;
 
-    @Column({type: 'decimal',nullable:true})
+    @Column({ type: 'decimal', nullable: true })
     discount: number;
 
     @Column({ type: 'time' })
     available_time_starts: string;
 
-    @Column({ type: 'time'})
+    @Column({ type: 'time' })
     available_time_ends: string;
 }

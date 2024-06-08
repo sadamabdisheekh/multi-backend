@@ -23,6 +23,10 @@ export class CreateItemDto {
     childSubCategoryId: number;
 
     @IsNotEmpty()
+    @IsNumber()
+    store_id: number;
+
+    @IsNotEmpty()
     price: number;
 
     @IsOptional()
