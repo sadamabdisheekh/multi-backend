@@ -2,6 +2,7 @@ import { CategoryEntity } from "src/category/category.entity";
 import { ChildSubCategoryEntity } from "src/child-sub-category/entities/child-sub-category.entity";
 import { Store } from "src/stores/entities/store.entity";
 import { SubCategoryEntity } from "src/sub-category/sub-category.entity";
+import { ItemVariation } from "src/variations/item-variation/entities/item-variation.entity";
 import { PrimaryGeneratedColumn, Column, OneToMany, Entity, ManyToOne, JoinColumn } from "typeorm";
 
 @Entity('items')
@@ -45,4 +46,7 @@ export class ItemsEntity {
 
     @Column({ type: 'time' })
     available_time_ends: string;
+
+    @OneToMany(() => ItemVariation, itemVariation => itemVariation.item)
+    itemVariations: ItemVariation[];
 }

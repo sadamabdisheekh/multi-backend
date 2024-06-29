@@ -24,6 +24,13 @@ import { ChildSubCategoryEntity } from './child-sub-category/entities/child-sub-
 import { ItemsEntity } from './items/entities/item.entity';
 import { StoresModule } from './stores/stores.module';
 import { Store } from './stores/entities/store.entity';
+import { ItemVariationModule } from './variations/item-variation/item-variation.module';
+import { ItemVariationAttributeModule } from './variations/item-variation-attribute/item-variation-attribute.module';
+import { AttributeModule } from './variations/attribute/attribute.module';
+import { Attribute } from './variations/attribute/entities/attribute.entity';
+import { AttributeValue } from './variations/attribute/entities/attribute-value.entity';
+import { ItemVariation } from './variations/item-variation/entities/item-variation.entity';
+import { ItemVariationAttribute } from './variations/item-variation-attribute/entities/item-variation-attribute.entity';
 
 
 @Module({
@@ -40,7 +47,9 @@ import { Store } from './stores/entities/store.entity';
       database: 'multi',
       entities: [
         UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
-        CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity, ItemsEntity,Store],
+        CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity, 
+        ItemsEntity,Store,Attribute,AttributeValue,ItemVariation,ItemVariationAttribute
+      ],
       synchronize: true,
     }),
     UsersModule,
@@ -53,6 +62,9 @@ import { Store } from './stores/entities/store.entity';
     ChildSubCategoryModule,
     ItemsModule,
     StoresModule,
+    AttributeModule,
+    ItemVariationModule,
+    ItemVariationAttributeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

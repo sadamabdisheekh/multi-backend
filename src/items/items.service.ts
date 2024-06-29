@@ -64,15 +64,47 @@ export class ItemsService {
     })
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} item`;
-  }
-
   update(id: number, updateItemDto: UpdateItemDto) {
     return `This action updates a #${id} item`;
   }
 
   remove(id: number) {
     return `This action removes a #${id} item`;
+  }
+
+  async getProductWithVariations() {
+
+    const items = await this.itemsRepository
+    .createQueryBuilder('item')
+    .leftJoinAndSelect('item.itemVariations', 'itemVariation')
+    .leftJoinAndSelect('itemVariation.itemVariationAttributes', 'itemVariationAttribute')
+    .leftJoinAndSelect('itemVariationAttribute.attribute', 'attribute')
+    .leftJoinAndSelect('itemVariationAttribute.attributeValue', 'attributeValue')
+    .getMany();
+
+    const all = items.map(product => ({
+      productName: product.name,
+      description: product.description,
+      price: product.price,
+      productVariations: product.itemVariations.map(variation => ({
+        sku: variation.sku,
+        price: variation.additionalPrice,
+        stockQuantity: variation.stock,
+        attributes: variation.itemVariationAttributes.reduce((acc, pva) => {
+          let attribute = acc.find(attr => attr.id === pva.attribute.id);
+          if (!attribute) {
+            attribute = {
+              id: pva.attribute.id,
+              name: pva.attribute.name,
+              attributeValues: [],
+            };
+            acc.push(attribute);
+          }
+          attribute.attributeValues.push({ value: pva.attributeValue.value });
+          return acc;
+        }, []),
+      })),
+    }));
+    return all;
   }
 }
