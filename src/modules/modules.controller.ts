@@ -20,7 +20,7 @@ export class ModulesController {
     if (!file) {
       throw new BadRequestException('File is not defined');
     }
-    return this.modulesService.create(file,payload);
+    return this.modulesService.create(file, payload);
   }
 
   @Get()
@@ -34,8 +34,8 @@ export class ModulesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateModuleDto: UpdateModuleDto) {
-    return this.modulesService.update(+id, updateModuleDto);
+  update(@Param('id') id: string, @Body() payload: CreateModuleDto) {
+    return this.modulesService.update(+id, payload);
   }
 
   @Delete(':id')

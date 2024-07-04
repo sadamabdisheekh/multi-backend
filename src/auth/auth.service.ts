@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -17,7 +17,7 @@ export class AuthService {
     const { mobile, password } = payload;
     const user = await this.usersService.findByMobileAndPassword(mobile, password);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new NotFoundException('invalid mobile or password');
     }
 
     const userData = {
@@ -25,6 +25,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       phone: user.mobile,
+      role: 'All',
       accessToken: null
     };
 

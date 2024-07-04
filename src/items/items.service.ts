@@ -39,7 +39,7 @@ export class ItemsService {
       description: payload.description,
       category: category,
       subCategory: null,
-      
+
       childSubCategory: null,
       created_at: new Date(),
       price: payload.price,
@@ -75,12 +75,12 @@ export class ItemsService {
   async getProductWithVariations() {
 
     const items = await this.itemsRepository
-    .createQueryBuilder('item')
-    .leftJoinAndSelect('item.itemVariations', 'itemVariation')
-    .leftJoinAndSelect('itemVariation.itemVariationAttributes', 'itemVariationAttribute')
-    .leftJoinAndSelect('itemVariationAttribute.attribute', 'attribute')
-    .leftJoinAndSelect('itemVariationAttribute.attributeValue', 'attributeValue')
-    .getMany();
+      .createQueryBuilder('item')
+      .leftJoinAndSelect('item.itemVariations', 'itemVariation')
+      .leftJoinAndSelect('itemVariation.itemVariationAttributes', 'itemVariationAttribute')
+      .leftJoinAndSelect('itemVariationAttribute.attribute', 'attribute')
+      .leftJoinAndSelect('itemVariationAttribute.attributeValue', 'attributeValue')
+      .getMany();
 
     const all = items.map(product => ({
       productName: product.name,

@@ -6,7 +6,7 @@ import { Filter } from './dto/filter.dto';
 
 @Controller('items')
 export class ItemsController {
-  constructor(private readonly itemsService: ItemsService) {}
+  constructor(private readonly itemsService: ItemsService) { }
 
   @Post()
   create(@Body() createItemDto: CreateItemDto) {
@@ -22,7 +22,7 @@ export class ItemsController {
   async findItemsbyFilter(@Body() payload: Filter) {
     return await this.itemsService.findItemsByFilter(payload);
   }
-  
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
     return this.itemsService.update(+id, updateItemDto);

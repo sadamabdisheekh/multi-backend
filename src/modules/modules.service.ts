@@ -1,4 +1,4 @@
-import { Injectable, NotAcceptableException } from '@nestjs/common';
+import { Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { ModuleEntity } from './module.entity';
@@ -14,16 +14,16 @@ export class ModulesService {
   constructor(@InjectRepository(ModuleEntity) private moduleRepository: Repository<ModuleEntity>) {
   }
 
-  async create(file: Express.Multer.File,payload: CreateModuleDto) {
+  async create(file: Express.Multer.File, payload: CreateModuleDto) {
 
-    const { module_name,description } = payload;
+    const { module_name, description } = payload;
 
     let isModuleExists = await this.moduleRepository.findOneBy({ module_name });
     if (isModuleExists) {
       throw new NotAcceptableException('this module name already exists');
     }
 
-    const savedFile = saveFile(file,UploadedFilePaths.MODULES);
+    const savedFile = saveFile(file, UploadedFilePaths.MODULES);
 
 
     const module = this.moduleRepository.create({
@@ -45,8 +45,15 @@ export class ModulesService {
     return `This action returns a #${id} module`;
   }
 
-  update(id: number, updateModuleDto: UpdateModuleDto) {
-    return `This action updates a #${id} module`;
+  async update(id: number, payload: CreateModuleDto) {
+    const module = await this.moduleRepository.findOneBy({ id });
+    if (!module) {
+      throw new NotFoundException(`module with ${id} not found`);
+    }
+    module.module_name = payload.module_name;
+    module.description = payload.description;
+    module.status = payload.status;
+    return await this.moduleRepository.update(module.id, module);
   }
 
   remove(id: number) {

@@ -16,8 +16,6 @@ import { CategoryEntity } from './category/category.entity';
 import { SubCategoryModule } from './sub-category/sub-category.module';
 import { SubCategoryEntity } from './sub-category/sub-category.entity';
 import { MulterModule } from '@nestjs/platform-express';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import { ChildSubCategoryModule } from './child-sub-category/child-sub-category.module';
 import { ItemsModule } from './items/items.module';
 import { ChildSubCategoryEntity } from './child-sub-category/entities/child-sub-category.entity';
@@ -47,8 +45,8 @@ import { ItemVariationAttribute } from './variations/item-variation-attribute/en
       database: 'multi',
       entities: [
         UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
-        CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity, 
-        ItemsEntity,Store,Attribute,AttributeValue,ItemVariation,ItemVariationAttribute
+        CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity,
+        ItemsEntity, Store, Attribute, AttributeValue, ItemVariation, ItemVariationAttribute
       ],
       synchronize: true,
     }),
