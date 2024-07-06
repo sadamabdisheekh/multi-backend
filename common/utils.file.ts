@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
 import { extname, join } from 'path';
 
 export function saveFile(file: Express.Multer.File, uploadPath: string): any {
@@ -24,4 +24,10 @@ export function saveFile(file: Express.Multer.File, uploadPath: string): any {
     filename,
     filePath
   };
+}
+
+export function deleteFile(filePath: string): void {
+  if (existsSync(filePath)) {
+    unlinkSync(filePath);
+  }
 }

@@ -27,8 +27,12 @@ export class SubCategoryService {
     .getMany();
   }
 
-  findAll() {
-    return `This action returns all subCategory`;
+  async findAll() {
+    return await this.subcatRepository.find({
+      relations: {
+        category: true
+      }
+    });
   }
 
   findOne(id: number) {

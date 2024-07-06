@@ -1,10 +1,10 @@
-import { Injectable, NotAcceptableException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { saveFile } from 'common/utils.file';
+import { deleteFile, saveFile } from 'common/utils.file';
 import { UploadedFilePaths } from 'common/enum';
 
 @Injectable()
@@ -35,7 +35,7 @@ export class CategoryService {
     const categoriesWithSub = await this.categoryRepository
     .createQueryBuilder("cat")
     .leftJoinAndSelect("cat.subCategory", "sub")
-    .where("cat.status = :status", { status: true })
+    // .where("cat.status = :status", { status: true })
     .getMany();
   
     return categoriesWithSub;
@@ -50,8 +50,29 @@ export class CategoryService {
     return `This action returns a #${id} category`;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: number,file: Express.Multer.File,payload: UpdateCategoryDto) {
+    const category = await this.categoryRepository.findOneBy({ id });
+    if (!category) {
+      throw new NotFoundException(`category with ID ${id} not found`);
+    }
+
+    let newFile = null;
+
+    if (file) {
+      try {
+        const existingFilePath = UploadedFilePaths.MODULES + category.image;
+        deleteFile(existingFilePath);
+        newFile = saveFile(file, UploadedFilePaths.MODULES);
+      } catch (error) {
+        throw new BadRequestException(`Failed to process the file: ${error.message}`);
+      }
+    }
+
+    category.name = payload.name;
+    category.image = newFile ? newFile.filename : category.image;
+    category.status = payload.status  == 'true' ? true : false;
+
+    return await this.categoryRepository.update(category.id, category);
   }
 
   remove(id: number) {

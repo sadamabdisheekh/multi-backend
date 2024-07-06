@@ -34,8 +34,15 @@ export class ModulesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() payload: CreateModuleDto) {
-    return this.modulesService.update(+id, payload);
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+  }))
+  update(
+    @Param('id') id: number, 
+    @UploadedFile() file: Express.Multer.File,
+    @Body() payload: CreateModuleDto
+  ) {
+    return this.modulesService.update(id, file, payload);
   }
 
   @Delete(':id')

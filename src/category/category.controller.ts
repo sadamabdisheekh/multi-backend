@@ -10,7 +10,7 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
 
-  @Post('uploads')
+  @Post('add')
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
   }))
@@ -41,8 +41,15 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoryService.update(+id, updateCategoryDto);
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+  }))
+  update(
+    @Param('id') id: number, 
+    @UploadedFile() file: Express.Multer.File,
+    @Body() payload: UpdateCategoryDto)
+    {
+    return this.categoryService.update(id,file,payload);
   }
 
   @Delete(':id')

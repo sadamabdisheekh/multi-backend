@@ -1,11 +1,11 @@
-import { Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { ModuleEntity } from './module.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
-import { saveFile } from 'common/utils.file';
+import { deleteFile, saveFile } from 'common/utils.file';
 import { UploadedFilePaths } from 'common/enum';
 
 @Injectable()
@@ -45,14 +45,29 @@ export class ModulesService {
     return `This action returns a #${id} module`;
   }
 
-  async update(id: number, payload: CreateModuleDto) {
+  async update(id: number, file: Express.Multer.File, payload: CreateModuleDto) {
     const module = await this.moduleRepository.findOneBy({ id });
     if (!module) {
-      throw new NotFoundException(`module with ${id} not found`);
+      throw new NotFoundException(`Module with ID ${id} not found`);
     }
+
+    let newFile = null;
+
+    if (file) {
+      try {
+        const existingFilePath = UploadedFilePaths.MODULES + module.image;
+        deleteFile(existingFilePath);
+        newFile = saveFile(file, UploadedFilePaths.MODULES);
+      } catch (error) {
+        throw new BadRequestException(`Failed to process the file: ${error.message}`);
+      }
+    }
+
     module.module_name = payload.module_name;
     module.description = payload.description;
+    module.image = newFile ? newFile.filename : module.image;
     module.status = payload.status;
+
     return await this.moduleRepository.update(module.id, module);
   }
 
