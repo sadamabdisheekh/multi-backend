@@ -12,9 +12,9 @@ export class SubCategoryEntity {
   category: CategoryEntity;
   @Column()
   subCategoryName: string;
-  @Column({nullable:true})
+  @Column({ nullable: true })
   image: string;
-  @Column({ default: true })
+  @Column({ default: false })
   status: boolean;
 
   @OneToMany(() => ChildSubCategoryEntity, childSubcat => childSubcat.subCategory)

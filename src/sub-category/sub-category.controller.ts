@@ -1,27 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { SubCategoryService } from './sub-category.service';
 import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub-category.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('sub-category')
 export class SubCategoryController {
-  constructor(private readonly subCategoryService: SubCategoryService) {}
+  constructor(private readonly subCategoryService: SubCategoryService) { }
 
   @Post()
-  create(@Body() createSubCategoryDto: CreateSubCategoryDto) {
-    return this.subCategoryService.create(createSubCategoryDto);
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+  }))
+  create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createSubCategoryDto: CreateSubCategoryDto
+  ) {
+    return this.subCategoryService.create(file,createSubCategoryDto);
   }
 
   @Get('findSubCategory/:category')
   findSubCategory(@Param('category') category: number) {
-      return this.subCategoryService.findSubCategory(category);
+    return this.subCategoryService.findSubCategory(category);
   }
 
   @Get()
   findAll() {
     return this.subCategoryService.findAll();
   }
-  
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {
