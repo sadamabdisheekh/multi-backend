@@ -14,8 +14,8 @@ export class ItemsController {
   }
 
   @Get()
-  findAll() {
-    return this.itemsService.findAll();
+  async findAll(): Promise<any> {
+    return await this.itemsService.findAll();
   }
 
   @Post('/filter')

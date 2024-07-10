@@ -50,8 +50,8 @@ export class ItemsService {
     return await this.itemsRepository.save(items);
   }
 
-  findAll() {
-    return `This action returns all items`;
+  async findAll(): Promise<any> {
+    return await this.itemsRepository.find();
   }
 
   async findItemsByFilter(filter: Filter) {
@@ -107,4 +107,6 @@ export class ItemsService {
     }));
     return all;
   }
+
+
 }
