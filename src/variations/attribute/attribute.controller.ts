@@ -20,8 +20,8 @@ export class AttributeController {
   }
 
   @Get()
-  findAll() {
-    return this.attributeService.findAll();
+  async findAll(): Promise<any> {
+    return await this.attributeService.findAll();
   }
 
   @Get(':id')

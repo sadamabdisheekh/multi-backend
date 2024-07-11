@@ -42,8 +42,12 @@ export class AttributeService {
     return await this.attributeValueRepository.save(attributeValue);
   }
 
-  findAll() {
-    return `This action returns all attribute`;
+  async findAll(): Promise<any> {
+    return await this.attributeRepository.find({
+      relations: {
+        attributeValues: true
+      }
+    });
   }
 
   findOne(id: number) {
