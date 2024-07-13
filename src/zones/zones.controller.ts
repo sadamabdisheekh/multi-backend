@@ -13,8 +13,8 @@ export class ZonesController {
   }
 
   @Get()
-  findAll() {
-    return this.zonesService.findAll();
+  async findAll() {
+    return await this.zonesService.findAll();
   }
 
   @Get(':id')

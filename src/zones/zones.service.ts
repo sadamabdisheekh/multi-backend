@@ -21,8 +21,8 @@ export class ZonesService {
     return await this.zoneRepository.save(zone);
   }
 
-  findAll() {
-    return `This action returns all zones`;
+  async findAll() {
+    return await this.zoneRepository.find();
   }
 
   findOne(id: number) {
