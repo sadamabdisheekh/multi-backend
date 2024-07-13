@@ -4,7 +4,7 @@ import { UpdateItemDto } from './dto/update-item.dto';
 import { Filter } from './dto/filter.dto';
 import { ItemsEntity } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CategoryEntity } from 'src/category/category.entity';
 import { Store } from 'src/stores/entities/store.entity';
 
@@ -50,8 +50,12 @@ export class ItemsService {
     return await this.itemsRepository.save(items);
   }
 
-  async findAll(): Promise<any> {
-    return await this.itemsRepository.find();
+  async findAll(name: string): Promise<any> {
+    return await this.itemsRepository.find({
+      where: {
+        name: Like(`%${name}%`)
+      }
+    });
   }
 
   async findItemsByFilter(filter: Filter) {

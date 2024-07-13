@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
@@ -14,8 +14,10 @@ export class ItemsController {
   }
 
   @Get()
-  async findAll(): Promise<any> {
-    return await this.itemsService.findAll();
+  async findAll(
+    @Query('itemName') itemName: string
+  ): Promise<any> {
+    return await this.itemsService.findAll(itemName);
   }
 
   @Post('/filter')

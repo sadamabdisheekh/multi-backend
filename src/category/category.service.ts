@@ -35,6 +35,7 @@ export class CategoryService {
     const categoriesWithSub = await this.categoryRepository
     .createQueryBuilder("cat")
     .leftJoinAndSelect("cat.subCategory", "sub")
+    .leftJoinAndSelect('sub.childSubcat','childSub')
     // .where("cat.status = :status", { status: true })
     .getMany();
   
