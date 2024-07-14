@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { ZoneEntity } from './zone.entity';
@@ -30,8 +30,15 @@ export class ZonesService {
     return `This action returns a #${id} zone`;
   }
 
-  update(id: number, updateZoneDto: UpdateZoneDto) {
-    return `This action updates a #${id} zone`;
+  async update(id: number, payload: UpdateZoneDto) {
+    let foundedZone = await this.zoneRepository.findOneBy({ id })
+    if (!foundedZone) {
+      throw new NotFoundException(`zone with id ${id} not found`);
+    }
+    foundedZone.name = payload.name;
+    foundedZone.status = payload.status;
+
+    return await this.zoneRepository.update(foundedZone.id, foundedZone);
   }
 
   remove(id: number) {
