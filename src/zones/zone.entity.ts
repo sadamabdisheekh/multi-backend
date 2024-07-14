@@ -10,7 +10,7 @@ export class ZoneEntity {
     @Column()
     name: string;
 
-    @Column({ type: 'text' }) // polygon
+    @Column({ type: 'text',nullable: true }) // polygon
     coordinates: string;
 
     @Column({ default: true })

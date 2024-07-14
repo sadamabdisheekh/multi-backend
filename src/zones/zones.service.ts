@@ -15,6 +15,7 @@ export class ZonesService {
 
     const zone = this.zoneRepository.create({
       name: name,
+      status: payload.status,
       coordinates: coordinates,
       created_at: new Date()
     });

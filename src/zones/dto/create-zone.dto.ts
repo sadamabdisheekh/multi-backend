@@ -1,8 +1,11 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateZoneDto {
     @IsNotEmpty()
     name: string;
-    @IsNotEmpty()
+    @IsOptional()
     coordinates: string;
+
+    @IsOptional()
+    status: boolean
 }
