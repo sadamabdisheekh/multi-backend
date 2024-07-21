@@ -2,10 +2,14 @@ import { BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
 import { extname, join } from 'path';
 
-export function saveFile(file: Express.Multer.File, uploadPath: string): any {
+export function uploadFile(file: Express.Multer.File, uploadPath: string,originalPath: string = null): any {
     
   if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
     throw new BadRequestException('Only image files are allowed!');
+  }
+
+  if (existsSync(originalPath)) {
+    unlinkSync(originalPath);
   }
 
   // Ensure the upload directory exists

@@ -1,20 +1,26 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Store } from './entities/store.entity';
 import { Repository } from 'typeorm';
 import { ZoneEntity } from 'src/zones/zone.entity';
+import { uploadFile } from 'common/utils.file';
+import { UploadedFilePaths } from 'common/enum';
+import { StoreSchedule } from './entities/store-schedule.entity';
+import { SchedulesDto } from './dto/store-schedule.dto';
 
 @Injectable()
 export class StoresService {
   constructor(
     @InjectRepository(Store) private storeRepository: Repository<Store>,
+    @InjectRepository(StoreSchedule)
+    private readonly storeScheduleRepository: Repository<StoreSchedule>,
     @InjectRepository(ZoneEntity)
     private readonly zoneRepository: Repository<ZoneEntity>,
   ) {}
   
-  async create(payload: CreateStoreDto) {
+  async create(file: Express.Multer.File,payload: CreateStoreDto) {
 
     const isStoreExist = await this.storeRepository.findOne({
       where: [
@@ -36,18 +42,20 @@ export class StoresService {
       throw new NotFoundException(`can't find zone`);
     }
 
+    const savedFile = uploadFile(file,UploadedFilePaths.STORES);
+
 
 
     const store = this.storeRepository.create({
       name: payload.name,
       phone: payload.phone,
       email: payload.email,
-      logo: payload.logo,
+      logo: savedFile.filename,
       latitude: payload.latitude,
       longitude: payload.longitude,
       address: payload.address,
       minimum_order: payload.minimum_order,
-      comission: payload.comission,
+      comission: payload.commission,
       created_at: new Date(),
       zone: isZoneExist
     });
@@ -56,19 +64,122 @@ export class StoresService {
     
   }
 
-  findAll() {
-    return `This action returns all stores`;
+  async findAll() {
+    return await this.storeRepository.find({
+      relations: ['zone']
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} store`;
+  async findOne(id: number) {
+    return await this.storeRepository.findOne({
+      relations: ['zone'],
+      where: {id}
+    })
   }
 
-  update(id: number, updateStoreDto: UpdateStoreDto) {
-    return `This action updates a #${id} store`;
+  async update(id: number,file:Express.Multer.File, payload: UpdateStoreDto) {
+    const findStore = await this.storeRepository.findOneBy({id});
+    if (!findStore) {
+      throw new NotFoundException(`store with id ${id} not  found`)
+    }
+
+    const findZone = await this.zoneRepository.findOne({
+      where: {id: payload.zone_id}
+    });
+    
+    if (!findZone) {
+      throw new NotFoundException(`can't find zone`);
+    }
+
+    let newFile = null;
+
+    if (file) {
+      try {
+        const existingFilePath = UploadedFilePaths.STORES + payload.logo;
+        newFile = uploadFile(file, UploadedFilePaths.STORES,existingFilePath);
+      } catch (error) {
+        throw new BadRequestException(`Failed to process the file: ${error.message}`);
+      }
+    }
+
+    findStore.name = payload.name;
+    findStore.email = payload.email;
+    findStore.phone = payload.phone;
+    findStore.address = payload.address;
+    findStore.comission = payload.commission;
+    findStore.logo = newFile ? newFile.filename : payload.logo;
+    findStore.latitude = payload.latitude;
+    findStore.longitude = payload.longitude;
+    findStore.minimum_order = payload.minimum_order;
+    findStore.status = payload.status;
+    findStore.zone = findZone;
+
+    return await this.storeRepository.save(findStore);
   }
 
   remove(id: number) {
     return `This action removes a #${id} store`;
   }
+
+  async findStoreSchedulerByStore(storeId:number) {
+    return await this.storeScheduleRepository.find({
+      where: {store: {id: storeId}}
+    })
+  }
+
+  async addStoreSchedule(storeId: number, payload: SchedulesDto): Promise<void> {
+    const store = await this.storeRepository.findOneBy({ id: storeId });
+    if (!store) {
+      throw new NotFoundException('Store not found');
+    }
+
+    const existingSchedules = await this.storeScheduleRepository.find({ 
+      relations: {
+        store: true
+      },
+      where: { store } 
+    });
+
+    const newSchedules = await Promise.all(payload.schedules.flatMap(schedule => {
+      if (!schedule.openTimes || schedule.openTimes.length === 0) {
+        schedule.openTimes = [{ openTime: null, closeTime: null }];
+      }
+
+      return schedule.openTimes.map(async (timeRangeDto) => {
+        const existingSchedule = existingSchedules.find(
+          s => s.dayOfWeek == schedule.dayOfWeek && s.store.id == storeId
+        );
+
+        if (existingSchedule) {
+          existingSchedule.isOpen = schedule.isOpen;
+          existingSchedule.closeTime = timeRangeDto.closeTime;
+          existingSchedule.openTime = timeRangeDto.openTime;
+
+          return existingSchedule;
+        } else {
+          const newSchedule = this.storeScheduleRepository.create({
+            store,
+            dayOfWeek: schedule.dayOfWeek,
+            isOpen: schedule.isOpen,
+            openTime: timeRangeDto.openTime,
+            closeTime: timeRangeDto.closeTime,
+          });
+
+          return newSchedule;
+        }
+      });
+    }));
+
+    try {
+      await this.storeScheduleRepository.save(newSchedules);
+      console.log('Schedules successfully saved');
+    } catch (error) {
+      if (error.code === '23505') {
+        console.error('Duplicate entry:', error.message);
+      } else {
+        console.error('Save failed:', error.message);
+      }
+    }
+  }
+  
 }

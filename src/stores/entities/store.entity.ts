@@ -1,6 +1,7 @@
 import { ItemsEntity } from 'src/items/entities/item.entity';
 import { ZoneEntity } from 'src/zones/zone.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { StoreSchedule } from './store-schedule.entity';
 
 @Entity('stores')
 export class Store {
@@ -29,7 +30,7 @@ export class Store {
   address: string;
 
   @Column({ nullable: true })
-  minimum_order: number;
+  minimum_order?: number;
 
   @Column({ type: 'decimal', nullable: true })
   comission: number;
@@ -49,4 +50,7 @@ export class Store {
 
   @OneToMany(() => ItemsEntity, item => item.store)
   item: ItemsEntity[];
+
+  @OneToMany(() => StoreSchedule, schedule => schedule.store)
+  schedules: StoreSchedule[];
 }

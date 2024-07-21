@@ -29,6 +29,7 @@ import { Attribute } from './variations/attribute/entities/attribute.entity';
 import { AttributeValue } from './variations/attribute/entities/attribute-value.entity';
 import { ItemVariation } from './variations/item-variation/entities/item-variation.entity';
 import { ItemVariationAttribute } from './variations/item-variation-attribute/entities/item-variation-attribute.entity';
+import { StoreSchedule } from './stores/entities/store-schedule.entity';
 
 
 @Module({
@@ -46,7 +47,7 @@ import { ItemVariationAttribute } from './variations/item-variation-attribute/en
       entities: [
         UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity,
-        ItemsEntity, Store, Attribute, AttributeValue, ItemVariation, ItemVariationAttribute
+        ItemsEntity, Store,StoreSchedule, Attribute, AttributeValue, ItemVariation, ItemVariationAttribute
       ],
       synchronize: true,
     }),

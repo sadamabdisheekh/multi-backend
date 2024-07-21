@@ -4,7 +4,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { deleteFile, saveFile } from 'common/utils.file';
+import { deleteFile, uploadFile } from 'common/utils.file';
 import { UploadedFilePaths } from 'common/enum';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class CategoryService {
       throw new NotAcceptableException('this category already exists');
     }
 
-    const savedFile = saveFile(file,UploadedFilePaths.CATEGERORY);
+    const savedFile = uploadFile(file,UploadedFilePaths.CATEGERORY);
 
     const category = this.categoryRepository.create({
       name: payload.name,
@@ -63,7 +63,7 @@ export class CategoryService {
       try {
         const existingFilePath = UploadedFilePaths.MODULES + category.image;
         deleteFile(existingFilePath);
-        newFile = saveFile(file, UploadedFilePaths.MODULES);
+        newFile = uploadFile(file, UploadedFilePaths.MODULES);
       } catch (error) {
         throw new BadRequestException(`Failed to process the file: ${error.message}`);
       }
