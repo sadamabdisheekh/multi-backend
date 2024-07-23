@@ -5,7 +5,7 @@ import { ModuleEntity } from './module.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
-import { deleteFile, saveFile } from 'common/utils.file';
+import { deleteFile, uploadFile } from 'common/utils.file';
 import { UploadedFilePaths } from 'common/enum';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class ModulesService {
       throw new NotAcceptableException('this module name already exists');
     }
 
-    const savedFile = saveFile(file, UploadedFilePaths.MODULES);
+    const savedFile = uploadFile(file, UploadedFilePaths.MODULES);
 
 
     const module = this.moduleRepository.create({
@@ -56,8 +56,7 @@ export class ModulesService {
     if (file) {
       try {
         const existingFilePath = UploadedFilePaths.MODULES + module.image;
-        deleteFile(existingFilePath);
-        newFile = saveFile(file, UploadedFilePaths.MODULES);
+        newFile = uploadFile(file, UploadedFilePaths.MODULES);
       } catch (error) {
         throw new BadRequestException(`Failed to process the file: ${error.message}`);
       }

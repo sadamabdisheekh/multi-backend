@@ -35,7 +35,7 @@ export class Store {
   @Column({ type: 'decimal', nullable: true })
   comission: number;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: true })
   status: boolean;
 
   @Column({ type: 'timestamp', nullable: true })

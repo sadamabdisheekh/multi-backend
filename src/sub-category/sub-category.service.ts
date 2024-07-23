@@ -5,7 +5,7 @@ import { SubCategoryEntity } from './sub-category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UploadedFilePaths } from 'common/enum';
-import { saveFile } from 'common/utils.file';
+import { uploadFile } from 'common/utils.file';
 import { CategoryEntity } from 'src/category/category.entity';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class SubCategoryService {
 
     if (file) {
       try {
-        newFile = saveFile(file, UploadedFilePaths.SUBCATEGERORY);
+        newFile = uploadFile(file, UploadedFilePaths.SUBCATEGERORY);
       } catch (error) {
         throw new BadRequestException(`Failed to process the file: ${error.message}`);
       }

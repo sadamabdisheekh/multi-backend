@@ -18,31 +18,31 @@ export class StoresService {
     private readonly storeScheduleRepository: Repository<StoreSchedule>,
     @InjectRepository(ZoneEntity)
     private readonly zoneRepository: Repository<ZoneEntity>,
-  ) {}
-  
-  async create(file: Express.Multer.File,payload: CreateStoreDto) {
+  ) { }
+
+  async create(file: Express.Multer.File, payload: CreateStoreDto) {
 
     const isStoreExist = await this.storeRepository.findOne({
       where: [
         { name: payload.name },
         { phone: payload.phone },
-        {email: payload.email}
+        { email: payload.email }
       ]
     });
-    
+
     if (isStoreExist) {
       throw new ConflictException(`Store with name "${payload.name}" or phone "${payload.phone}" already exists`);
     }
 
     const isZoneExist = await this.zoneRepository.findOne({
-      where: {id: payload.zone_id}
+      where: { id: payload.zone_id }
     });
-    
+
     if (!isZoneExist) {
       throw new NotFoundException(`can't find zone`);
     }
 
-    const savedFile = uploadFile(file,UploadedFilePaths.STORES);
+    const savedFile = uploadFile(file, UploadedFilePaths.STORES);
 
 
 
@@ -61,7 +61,7 @@ export class StoresService {
     });
 
     return await this.storeRepository.save(store);
-    
+
   }
 
   async findAll() {
@@ -73,22 +73,22 @@ export class StoresService {
   async findOne(id: number) {
     return await this.storeRepository.findOne({
       relations: ['zone'],
-      where: {id}
+      where: { id }
     })
   }
 
-  async update(id: number,file:Express.Multer.File, payload: UpdateStoreDto) {
-    const findStore = await this.storeRepository.findOneBy({id});
+  async update(id: number, file: Express.Multer.File, payload: UpdateStoreDto) {
+    const findStore = await this.storeRepository.findOneBy({ id });
     if (!findStore) {
-      throw new NotFoundException(`store with id ${id} not  found`)
+      throw new NotFoundException(`Store with id ${id} not found`);
     }
 
     const findZone = await this.zoneRepository.findOne({
-      where: {id: payload.zone_id}
+      where: { id: payload.zone_id }
     });
-    
+
     if (!findZone) {
-      throw new NotFoundException(`can't find zone`);
+      throw new NotFoundException(`Can't find zone`);
     }
 
     let newFile = null;
@@ -96,7 +96,7 @@ export class StoresService {
     if (file) {
       try {
         const existingFilePath = UploadedFilePaths.STORES + payload.logo;
-        newFile = uploadFile(file, UploadedFilePaths.STORES,existingFilePath);
+        newFile = await uploadFile(file, UploadedFilePaths.STORES, existingFilePath);
       } catch (error) {
         throw new BadRequestException(`Failed to process the file: ${error.message}`);
       }
@@ -111,19 +111,23 @@ export class StoresService {
     findStore.latitude = payload.latitude;
     findStore.longitude = payload.longitude;
     findStore.minimum_order = payload.minimum_order;
-    findStore.status = payload.status;
+    findStore.status = payload.status.toString() == 'true';
     findStore.zone = findZone;
 
-    return await this.storeRepository.save(findStore);
+    try {
+      return await this.storeRepository.save(findStore);
+    } catch (error) {
+      throw new BadRequestException(`Failed to update store: ${error.message}`);
+    }
   }
 
   remove(id: number) {
     return `This action removes a #${id} store`;
   }
 
-  async findStoreSchedulerByStore(storeId:number) {
+  async findStoreSchedulerByStore(storeId: number) {
     return await this.storeScheduleRepository.find({
-      where: {store: {id: storeId}}
+      where: { store: { id: storeId } }
     })
   }
 
@@ -133,11 +137,11 @@ export class StoresService {
       throw new NotFoundException('Store not found');
     }
 
-    const existingSchedules = await this.storeScheduleRepository.find({ 
+    const existingSchedules = await this.storeScheduleRepository.find({
       relations: {
         store: true
       },
-      where: { store } 
+      where: { store }
     });
 
     const newSchedules = await Promise.all(payload.schedules.flatMap(schedule => {
@@ -181,5 +185,5 @@ export class StoresService {
       }
     }
   }
-  
+
 }
