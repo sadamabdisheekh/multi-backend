@@ -7,15 +7,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { CategoryEntity } from 'src/category/category.entity';
 import { Store } from 'src/stores/entities/store.entity';
+import { ItemTypes } from './entities/item-type.entity';
 
 @Injectable()
 export class ItemsService {
   constructor(
-    @InjectRepository(ItemsEntity) private itemsRepository: Repository<ItemsEntity>,
+    @InjectRepository(ItemsEntity) 
+    private itemsRepository: Repository<ItemsEntity>,
     @InjectRepository(CategoryEntity)
     private readonly categoriesRepository: Repository<CategoryEntity>,
     @InjectRepository(Store)
     private readonly storeRepository: Repository<Store>,
+    @InjectRepository(ItemTypes)
+    private readonly itemTypeRepository: Repository<ItemTypes>,
   ) { }
   async create(payload: CreateItemDto) {
     const category = await this.categoriesRepository.findOne({
@@ -110,6 +114,12 @@ export class ItemsService {
       })),
     }));
     return all;
+  }
+
+  async findItemTypes() {
+    return this.itemTypeRepository.find({
+      where: {isActive : true}
+    })
   }
 
 

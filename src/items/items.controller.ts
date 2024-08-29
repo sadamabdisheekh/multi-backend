@@ -39,4 +39,10 @@ export class ItemsController {
   async getProduct() {
     return await this.itemsService.getProductWithVariations();
   }
+
+  @Get('/finditemtypes')
+  async findItemTypes() {
+    return await this.itemsService.findItemTypes();
+  }
+
 }
