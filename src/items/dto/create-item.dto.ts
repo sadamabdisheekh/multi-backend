@@ -1,40 +1,114 @@
-import { IsNotEmpty, IsNumber, IsOptional } from "class-validator";
+import { IsString, IsInt, IsOptional, IsNumber, IsArray, IsBoolean, IsNotEmpty, ValidateNested, IsObject } from 'class-validator';
+import { Type } from 'class-transformer';
+
+// Define nested DTOs for more complex structures
+
+class AttributeIdDto {
+  @IsInt()
+  id: number;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+}
+
+class AttributeValueDto {
+  @IsInt()
+  id: number;
+
+  @IsString()
+  @IsNotEmpty()
+  value: string;
+}
+
+class VariationDto {
+  @IsString()
+  @IsNotEmpty()
+  sku: string;
+
+  @IsNumber()
+  price: number;
+
+  @IsInt()
+  stock: number;
+
+  @IsInt()
+  stockAlert: number;
+
+  @IsInt()
+  attributeValueId: number;
+}
+
+class AttributeDto {
+  @ValidateNested()
+  @Type(() => AttributeIdDto)
+  attributeId: AttributeIdDto;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AttributeValueDto)
+  attributeValueId: AttributeValueDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VariationDto)
+  variations: VariationDto[];
+}
 
 export class CreateItemDto {
-    @IsNotEmpty()
-    name: string;
+  @IsInt()
+  itemType: number;
 
-    @IsOptional()
-    description: string;
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsOptional()
-    created_at: Date;
+  @IsInt()
+  categoryId: number;
 
-    @IsNotEmpty()
-    @IsNumber()
-    categoryId: number;
+  @IsOptional()
+  @IsInt()
+  subCategoryId?: number;
 
-    @IsOptional()
-    @IsNumber()
-    subCategoryId: number;
+  @IsOptional()
+  @IsInt()
+  childSubCategoryId?: number;
 
-    @IsOptional()
-    @IsNumber()
-    childSubCategoryId: number;
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-    @IsNotEmpty()
-    @IsNumber()
-    store_id: number;
+  @IsOptional()
+  @IsInt()
+  stock?: number;
 
-    @IsNotEmpty()
-    price: number;
+  @IsOptional()
+  @IsInt()
+  stockAlert?: number;
 
-    @IsOptional()
-    discount: number;
+  @IsNumber()
+  price: number;
 
-    @IsNotEmpty()
-    available_time_starts: string;
+  @IsNumber()
+  cost: number;
 
-    @IsNotEmpty()
-    available_time_ends: string;
+
+  @IsNumber()
+  discount: number;
+
+  @IsBoolean()
+  hasAvailableTime: boolean;
+
+  @IsOptional()
+  @IsNotEmpty()
+  available_time_starts?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  available_time_ends?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AttributeDto)
+  attributes: AttributeDto[];
 }

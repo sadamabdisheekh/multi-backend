@@ -1,4 +1,4 @@
-import { CategoryEntity } from 'src/category/category.entity';
+import { CategoryEntity } from 'src/category/entities/category.entity';
 import { ModuleZoneEntity } from 'src/module-zone/module-zone.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 

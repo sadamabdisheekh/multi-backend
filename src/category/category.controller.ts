@@ -4,6 +4,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { CreateSubCategoryDto } from './dto/create-subcategory.dto';
 
 @Controller('category')
 export class CategoryController {
@@ -23,12 +24,6 @@ export class CategoryController {
     }
     return this.categoryService.create(file,payload);
   }
-
-
-  // @Get('/categorywithsub/:id')
-  // findCategoryWithSub(@Param('id') moduleId: number) {
-  //   return this.categoryService.findCategoryWithSub(moduleId);
-  // }
 
   @Get()
   findCategoryWithSub() {
@@ -55,5 +50,18 @@ export class CategoryController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.categoryService.remove(+id);
+  }
+
+
+  
+  @Post()
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+  }))
+  create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createSubCategoryDto: CreateSubCategoryDto
+  ) {
+    return this.categoryService.createSubCategory(file,createSubCategoryDto);
   }
 }

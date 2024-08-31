@@ -1,16 +1,22 @@
 import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { CategoryEntity } from './category.entity';
+import { CategoryEntity } from './entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { deleteFile, uploadFile } from 'common/utils.file';
 import { UploadedFilePaths } from 'common/enum';
+import { CreateSubCategoryDto } from './dto/create-subcategory.dto';
+import { SubCategoryEntity } from './entities/sub-category.entity';
 
 @Injectable()
 export class CategoryService {
-  constructor(@InjectRepository(CategoryEntity) private categoryRepository: Repository<CategoryEntity>) {
-  }
+  constructor(
+  @InjectRepository(CategoryEntity) 
+  private categoryRepository: Repository<CategoryEntity>,
+  @InjectRepository(SubCategoryEntity) 
+  private subCategoryRepository: Repository<SubCategoryEntity>
+) {}
 
    
   async create(file: Express.Multer.File,payload: CreateCategoryDto) {
@@ -78,5 +84,34 @@ export class CategoryService {
 
   remove(id: number) {
     return `This action removes a #${id} category`;
+  }
+
+
+
+  async createSubCategory(file: Express.Multer.File, payload: CreateSubCategoryDto) {
+
+    const category = await this.categoryRepository.findOneBy({ id: payload.categoryId })
+    if (!category) {
+      throw new NotFoundException('this category not found')
+    }
+
+    let newFile = null;
+
+    if (file) {
+      try {
+        newFile = uploadFile(file, UploadedFilePaths.SUBCATEGERORY);
+      } catch (error) {
+        throw new BadRequestException(`Failed to process the file: ${error.message}`);
+      }
+    }
+
+    const data = this.subCategoryRepository.create({
+      subCategoryName: payload.subCategoryName,
+      category: category,
+      status: payload.status,
+      image: newFile ? newFile.filename : null
+    });
+
+    return await this.subCategoryRepository.save(data);
   }
 }

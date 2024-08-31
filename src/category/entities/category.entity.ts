@@ -1,7 +1,7 @@
-import { ItemsEntity } from 'src/items/entities/item.entity';
 import { ModuleEntity } from 'src/modules/module.entity';
-import { SubCategoryEntity } from 'src/sub-category/sub-category.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { SubCategoryEntity } from './sub-category.entity';
+import { ItemVariation } from 'src/items/entities/item-variation.entity';
 
 @Entity('categories')
 export class CategoryEntity {
@@ -9,7 +9,7 @@ export class CategoryEntity {
     id: number;
 
     @ManyToOne(() => ModuleEntity, module => module.category)
-    @JoinColumn({ name: 'moduleId' })
+    @JoinColumn({ name: 'modul_id' })
     module: ModuleEntity;
 
     @Column()
@@ -33,7 +33,7 @@ export class CategoryEntity {
     @OneToMany(() => SubCategoryEntity, module => module.category)
     subCategory: SubCategoryEntity[];
 
-    @OneToMany(() => ItemsEntity, item => item.category)
-    items: ItemsEntity[];
+    @OneToMany(() => ItemVariation, item => item.category)
+    items: ItemVariation[];
 
 }

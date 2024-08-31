@@ -12,25 +12,20 @@ import { ModuleZoneModule } from './module-zone/module-zone.module';
 import { ZoneEntity } from './zones/zone.entity';
 import { ModuleZoneEntity } from './module-zone/module-zone.entity';
 import { CategoryModule } from './category/category.module';
-import { CategoryEntity } from './category/category.entity';
-import { SubCategoryModule } from './sub-category/sub-category.module';
-import { SubCategoryEntity } from './sub-category/sub-category.entity';
+import { CategoryEntity } from './category/entities/category.entity';
 import { MulterModule } from '@nestjs/platform-express';
-import { ChildSubCategoryModule } from './child-sub-category/child-sub-category.module';
 import { ItemsModule } from './items/items.module';
-import { ChildSubCategoryEntity } from './child-sub-category/entities/child-sub-category.entity';
 import { ItemsEntity } from './items/entities/item.entity';
 import { StoresModule } from './stores/stores.module';
 import { Store } from './stores/entities/store.entity';
-import { ItemVariationModule } from './variations/item-variation/item-variation.module';
-import { ItemVariationAttributeModule } from './variations/item-variation-attribute/item-variation-attribute.module';
-import { AttributeModule } from './variations/attribute/attribute.module';
-import { Attribute } from './variations/attribute/entities/attribute.entity';
-import { AttributeValue } from './variations/attribute/entities/attribute-value.entity';
-import { ItemVariation } from './variations/item-variation/entities/item-variation.entity';
-import { ItemVariationAttribute } from './variations/item-variation-attribute/entities/item-variation-attribute.entity';
 import { StoreSchedule } from './stores/entities/store-schedule.entity';
 import { ItemTypes } from './items/entities/item-type.entity';
+import { SubCategoryEntity } from './category/entities/sub-category.entity';
+import { ChildSubCategoryEntity } from './category/entities/child-sub-category.entity';
+import { AttributeValue } from './items/entities/attribute-value.entity';
+import { Attribute } from './items/entities/attribute.entity';
+import { ItemVariationAttribute } from './items/entities/item-variation-attribute.entity';
+import { ItemVariation } from './items/entities/item-variation.entity';
 
 
 @Module({
@@ -49,8 +44,7 @@ import { ItemTypes } from './items/entities/item-type.entity';
         UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity,
         ItemsEntity, Store,StoreSchedule, Attribute, AttributeValue, 
-        ItemTypes,
-        ItemVariation, ItemVariationAttribute
+        ItemVariation, ItemVariationAttribute,ItemTypes
       ],
       synchronize: true,
     }),
@@ -60,13 +54,8 @@ import { ItemTypes } from './items/entities/item-type.entity';
     ZonesModule,
     ModuleZoneModule,
     CategoryModule,
-    SubCategoryModule,
-    ChildSubCategoryModule,
     ItemsModule,
     StoresModule,
-    AttributeModule,
-    ItemVariationModule,
-    ItemVariationAttributeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

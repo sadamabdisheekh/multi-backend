@@ -9,8 +9,8 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) { }
 
   @Post()
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemsService.create(createItemDto);
+  async create(@Body() createItemDto: CreateItemDto) {
+    return await this.itemsService.create(createItemDto);
   }
 
   @Get()
@@ -35,14 +35,14 @@ export class ItemsController {
     return this.itemsService.remove(+id);
   }
 
-  @Get('/fetch')
-  async getProduct() {
-    return await this.itemsService.getProductWithVariations();
-  }
-
   @Get('/finditemtypes')
   async findItemTypes() {
     return await this.itemsService.findItemTypes();
+  }
+
+  @Get('/attributes')
+  async getAttributes() {
+    return await this.itemsService.getAttributes()
   }
 
 }

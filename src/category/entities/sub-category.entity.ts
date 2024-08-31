@@ -1,14 +1,14 @@
-import { CategoryEntity } from 'src/category/category.entity';
-import { ChildSubCategoryEntity } from 'src/child-sub-category/entities/child-sub-category.entity';
-import { ItemsEntity } from 'src/items/entities/item.entity';
+import { CategoryEntity } from 'src/category/entities/category.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { ChildSubCategoryEntity } from './child-sub-category.entity';
+import { ItemVariation } from 'src/items/entities/item-variation.entity';
 
 @Entity('subcategory')
 export class SubCategoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
   @ManyToOne(() => CategoryEntity, zone => zone.subCategory)
-  @JoinColumn({ name: 'categoryId' })
+  @JoinColumn({ name: 'category_id' })
   category: CategoryEntity;
   @Column()
   subCategoryName: string;
@@ -20,6 +20,6 @@ export class SubCategoryEntity {
   @OneToMany(() => ChildSubCategoryEntity, childSubcat => childSubcat.subCategory)
   childSubcat: ChildSubCategoryEntity[];
 
-  @OneToMany(() => ItemsEntity, item => item.subCategory)
-  items: ItemsEntity[];
+  @OneToMany(() => ItemVariation, item => item.subCategory)
+  items: ItemVariation[];
 }
