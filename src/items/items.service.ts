@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Filter } from './dto/filter.dto';
@@ -39,57 +39,120 @@ export class ItemsService {
   ) { }
 
   async create(payload: CreateItemDto): Promise<ItemsEntity> {
-    const itemType = await this.itemTypeRepository.findOneBy({item_type_id: payload.itemType});
-    if (!itemType) {
-      throw new NotFoundException(`item type not found`);
+    // Check if item name already exists
+    const existingItem = await this.itemsRepository.findOne({ where: { name: payload.name } });
+    if (existingItem) {
+      throw new ConflictException('An item with this name already exists');
     }
+  
+    // Find item type
+    const itemType = await this.itemTypeRepository.findOneBy({ item_type_id: payload.itemType });
+    if (!itemType) {
+      throw new NotFoundException('Item type not found');
+    }
+  
     const item = new ItemsEntity();
     item.itemType = itemType;
     item.name = payload.name;
     // Set other properties as needed
     await this.itemsRepository.save(item);
-
-    if (payload.attributes.length == 0) {
-      
-    }
-
-    for (const attr of payload.attributes) {
-      for (const variation of attr.variations) {
-        const itemVariation = new ItemVariation();
-        itemVariation.item = item;
-        itemVariation.name = payload.name;
-        itemVariation.sku = variation.sku;
-        itemVariation.cost = payload.cost;
-        itemVariation.price = variation.price;
-        itemVariation.stock = variation.stock;
-        itemVariation.stockAlert = variation.stockAlert;
-        itemVariation.description = payload.description;
-        itemVariation.available_time_starts = payload.available_time_starts;
-        itemVariation.available_time_ends = payload.available_time_ends;
-        const category = await this.categoryRepository.findOneBy({ id: payload.categoryId });
-        itemVariation.category = category;
-        const subCategory = await this.subcategoryRepository.findOneBy({ id: payload.subCategoryId });
-        itemVariation.subCategory = subCategory;
-        await this.itemVariationRepository.save(itemVariation);
-
-        for (const attrValue of attr.attributeValueId) {
-          const itemVariationValue = new ItemVariationAttribute();
-          itemVariationValue.itemVariation = itemVariation;
-          const attribute = await this.attributesRepository.findOne({ where: { id: attr.attributeId.id } });
-          itemVariationValue.attribute = attribute;
-
-          // Fetch and assign the related attribute value entity
-          const attributeValue = await this.attributesValueRepository.findOne({ where: { id: attrValue.id } });
-          itemVariationValue.attributeValue = attributeValue;
-          await this.itemVariationAttributeRepository.save(itemVariationValue);
+  
+    try {
+      // Find category and sub-category
+      const category = await this.categoryRepository.findOneBy({ id: payload.categoryId });
+      const subCategory = await this.subcategoryRepository.findOneBy({ id: payload.subCategoryId });
+  
+      if (!category || !subCategory) {
+        throw new NotFoundException('Category or Subcategory not found');
+      }
+  
+      if (payload.attributes.length === 0) {
+        await this.createItemVariation(payload, item, category, subCategory);
+      } else {
+        for (const attr of payload.attributes) {
+          await this.createVariationsForAttributes(attr, payload, item, category, subCategory);
         }
       }
+  
+      return item;
+    } catch (error) {
+      // Log or handle the error appropriately
+      console.error('Error creating item:', error);
+      throw new InternalServerErrorException('An error occurred while creating the item');
     }
-    return item;
   }
+  
+  private async createItemVariation(payload: CreateItemDto, item: ItemsEntity, category: CategoryEntity, subCategory: SubCategoryEntity) {
+    const itemVariation = new ItemVariation();
+    itemVariation.item = item;
+    itemVariation.name = payload.name;
+    itemVariation.cost = payload.cost;
+    itemVariation.price = payload.price;
+    itemVariation.stock = payload.stock;
+    itemVariation.stockAlert = payload.stockAlert;
+    itemVariation.description = payload.description;
+    itemVariation.available_time_starts = payload.available_time_starts;
+    itemVariation.available_time_ends = payload.available_time_ends;
+    itemVariation.category = category;
+    itemVariation.subCategory = subCategory;
+  
+    await this.itemVariationRepository.save(itemVariation);
+  }
+  
+  private async createVariationsForAttributes(attr: any, payload: CreateItemDto, item: ItemsEntity, category: CategoryEntity, subCategory: SubCategoryEntity) {
+    for (const variation of attr.variations) {
+      const itemVariation = new ItemVariation();
+      itemVariation.item = item;
+      itemVariation.name = payload.name;
+      itemVariation.sku = variation.sku;
+      itemVariation.cost = payload.cost;
+      itemVariation.price = variation.price;
+      itemVariation.stock = variation.stock;
+      itemVariation.stockAlert = variation.stockAlert;
+      itemVariation.description = payload.description;
+      itemVariation.available_time_starts = payload.available_time_starts;
+      itemVariation.available_time_ends = payload.available_time_ends;
+      itemVariation.category = category;
+      itemVariation.subCategory = subCategory;
+  
+      await this.itemVariationRepository.save(itemVariation);
+      await this.createItemVariationAttributes(attr, itemVariation);
+    }
+  }
+  
+  private async createItemVariationAttributes(attr: any, itemVariation: ItemVariation) {
+    for (const attrValue of attr.attributeValueId) {
+      const itemVariationValue = new ItemVariationAttribute();
+      itemVariationValue.itemVariation = itemVariation;
+      const attribute = await this.attributesRepository.findOne({ where: { id: attr.attributeId.id } });
+      const attributeValue = await this.attributesValueRepository.findOne({ where: { id: attrValue.id } });
+  
+      if (attribute && attributeValue) {
+        itemVariationValue.attribute = attribute;
+        itemVariationValue.attributeValue = attributeValue;
+        await this.itemVariationAttributeRepository.save(itemVariationValue);
+      } else {
+        throw new NotFoundException('Attribute or Attribute Value not found');
+      }
+    }
+  }
+  
+
+
 
   async findAll(name: string): Promise<any> {
     return await this.itemsRepository.find({
+      relations: {
+        itemType: true,
+        itemVariations: {
+          category: true,
+          subCategory: true,
+          itemVariationAttributes: {
+            attribute: true,
+            attributeValue: true
+          }
+        }
+      },
       where: {
         name: Like(`%${name}%`)
       }

@@ -63,10 +63,10 @@ export class ItemVariation {
   price: number;
 
 
-  @Column({ type: 'time' })
+  @Column({ type: 'time', nullable: true })
   available_time_starts: string;
 
-  @Column({ type: 'time' })
+  @Column({ type: 'time',nullable: true })
   available_time_ends: string;
 
   @Column({type: 'text'})

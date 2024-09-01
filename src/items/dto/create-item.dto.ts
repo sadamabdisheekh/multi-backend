@@ -92,10 +92,6 @@ export class CreateItemDto {
   @IsNumber()
   cost: number;
 
-
-  @IsNumber()
-  discount: number;
-
   @IsBoolean()
   hasAvailableTime: boolean;
 
