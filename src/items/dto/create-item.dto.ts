@@ -86,11 +86,13 @@ export class CreateItemDto {
   @IsInt()
   stockAlert?: number;
 
+  @IsOptional()
   @IsNumber()
-  price: number;
+  price?: number;
 
+  @IsOptional()
   @IsNumber()
-  cost: number;
+  cost?: number;
 
   @IsBoolean()
   hasAvailableTime: boolean;

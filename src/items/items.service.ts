@@ -105,7 +105,7 @@ export class ItemsService {
       itemVariation.item = item;
       itemVariation.name = payload.name;
       itemVariation.sku = variation.sku;
-      itemVariation.cost = payload.cost;
+      itemVariation.cost = variation.cost;
       itemVariation.price = variation.price;
       itemVariation.stock = variation.stock;
       itemVariation.stockAlert = variation.stockAlert;
@@ -141,16 +141,17 @@ export class ItemsService {
 
 
   async findAll(name: string): Promise<any> {
-    return await this.itemsRepository.find({
+    return await this.itemVariationRepository.find({
       relations: {
-        itemType: true,
-        itemVariations: {
-          category: true,
-          subCategory: true,
-          itemVariationAttributes: {
-            attribute: true,
-            attributeValue: true
-          }
+        item: {
+          itemType: true
+        },
+        category: true,
+        subCategory: true,
+        itemVariationAttributes: {
+          attribute: true,
+          attributeValue: true,
+          
         }
       },
       where: {
