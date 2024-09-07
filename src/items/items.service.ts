@@ -127,6 +127,8 @@ export class ItemsService {
       itemVariation.available_time_ends = payload.available_time_ends;
       itemVariation.category = category;
       itemVariation.subCategory = subCategory;
+      itemVariation.store = store;
+      itemVariation.brand = brand;
   
       await this.itemVariationRepository.save(itemVariation);
   
