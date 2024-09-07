@@ -11,13 +11,14 @@ import { ItemVariation } from './entities/item-variation.entity';
 import { ItemVariationAttribute } from './entities/item-variation-attribute.entity';
 import { AttributeValue } from './entities/attribute-value.entity';
 import { SubCategoryEntity } from 'src/category/entities/sub-category.entity';
+import { Brand } from './entities/brand.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       ItemsEntity,Attribute,
       AttributeValue,ItemVariation,ItemVariationAttribute, 
-      CategoryEntity,SubCategoryEntity, Store,ItemTypes
+      CategoryEntity,SubCategoryEntity, Store,ItemTypes,Brand
     ])
   ],
   controllers: [ItemsController],

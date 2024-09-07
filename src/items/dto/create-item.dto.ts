@@ -56,12 +56,20 @@ class AttributeDto {
 }
 
 export class CreateItemDto {
+
+  @IsInt()
+  storeId: number;
+
   @IsInt()
   itemType: number;
 
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsOptional()
+  @IsInt()
+  brandId?: number;
 
   @IsInt()
   categoryId: number;

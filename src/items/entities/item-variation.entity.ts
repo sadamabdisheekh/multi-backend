@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { ItemVariationAttribute } from './item-variation-attribute.entity';
 import { ItemsEntity } from './item.entity';
+import { Brand } from './brand.entity';
 
 @Entity()
 export class ItemVariation {
@@ -83,4 +84,9 @@ export class ItemVariation {
     (itemVariationAttribute) => itemVariationAttribute.itemVariation,
   )
   itemVariationAttributes: ItemVariationAttribute[];
+
+
+  @ManyToOne(() => Brand, (brand) => brand.itemVariations, {nullable: true,})
+  @JoinColumn({ name: 'brand_id' })
+  brand: Brand;
 }

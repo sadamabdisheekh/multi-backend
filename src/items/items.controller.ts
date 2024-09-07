@@ -14,10 +14,8 @@ export class ItemsController {
   }
 
   @Get()
-  async findAll(
-    @Query('itemName') itemName: string
-  ): Promise<any> {
-    return await this.itemsService.findAll(itemName);
+  async findAll(): Promise<any> {
+    return await this.itemsService.findAll();
   }
 
   @Post('/filter')
@@ -43,6 +41,18 @@ export class ItemsController {
   @Get('/attributes')
   async getAttributes() {
     return await this.itemsService.getAttributes()
+  }
+
+  @Get('/itemdetails/:id')
+  async findItemDetails(
+    @Param('id') itemId: number
+  ): Promise<any> {
+    return await this.itemsService.findItemDetials(itemId);
+  }
+
+  @Get('/brands')
+  async getAllBrands(): Promise<any> {
+    return await this.itemsService.getAllBrands();
   }
 
 }
