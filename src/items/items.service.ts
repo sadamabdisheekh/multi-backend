@@ -170,7 +170,7 @@ export class ItemsService {
 
   async findItemDetials(itemId: number): Promise<any> {
     const item = await this.itemsRepository.findOne({
-      relations: ['itemType','itemVariations','itemVariations.category'],
+      relations: ['itemType','itemVariations','itemVariations.category','itemVariations.brand'],
       where: {id: itemId}
     })
     const itemDetials =  await this.itemVariationAttributeRepository.find({
