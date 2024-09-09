@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Filter } from './dto/filter.dto';
@@ -14,11 +14,12 @@ import { Attribute } from './entities/attribute.entity';
 import { AttributeValue } from './entities/attribute-value.entity';
 import { SubCategoryEntity } from 'src/category/entities/sub-category.entity';
 import { Brand } from './entities/brand.entity';
+import { ItemVariationDto } from './dto/item-variation.dto';
 
 @Injectable()
 export class ItemsService {
   constructor(
-    @InjectRepository(ItemsEntity) 
+    @InjectRepository(ItemsEntity)
     private itemsRepository: Repository<ItemsEntity>,
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: Repository<CategoryEntity>,
@@ -38,7 +39,7 @@ export class ItemsService {
     private readonly itemVariationAttributeRepository: Repository<ItemVariationAttribute>,
     @InjectRepository(Brand)
     private readonly brandRepository: Repository<Brand>,
-    
+
   ) { }
 
   async create(payload: CreateItemDto): Promise<ItemsEntity> {
@@ -64,27 +65,27 @@ export class ItemsService {
       // Find category and sub-category
       const category = await this.categoryRepository.findOne({ where: { id: payload.categoryId } });
       const subCategory = await this.subcategoryRepository.findOne({ where: { id: payload.subCategoryId } });
-  
+
       if (!category || !subCategory) {
         throw new NotFoundException('Category or Subcategory not found');
       }
-  
+
       // Create new item
       const item = new ItemsEntity();
       item.itemType = itemType;
       item.name = payload.name;
       // Set other properties as needed
       await this.itemsRepository.save(item);
-  
+
       // Create item variations
       if (payload.attributes.length === 0) {
-        await this.createItemVariation(payload, item,store,brand, category, subCategory);
+        await this.createItemVariation(payload, item, store, brand, category, subCategory);
       } else {
         for (const attr of payload.attributes) {
-          await this.createVariationsForAttributes(attr, payload, item,store,brand, category, subCategory);
+          await this.createVariationsForAttributes(attr, payload, item, store, brand, category, subCategory);
         }
       }
-  
+
       return item;
     } catch (error) {
       // Log or handle the error appropriately
@@ -92,8 +93,8 @@ export class ItemsService {
       throw new InternalServerErrorException('An error occurred while creating the item');
     }
   }
-  
-  private async createItemVariation(payload: CreateItemDto, item: ItemsEntity,store: Store,brand: Brand, category: CategoryEntity, subCategory: SubCategoryEntity) {
+
+  private async createItemVariation(payload: CreateItemDto, item: ItemsEntity, store: Store, brand: Brand, category: CategoryEntity, subCategory: SubCategoryEntity) {
     const itemVariation = new ItemVariation();
     itemVariation.item = item;
     itemVariation.name = payload.name;
@@ -108,11 +109,11 @@ export class ItemsService {
     itemVariation.subCategory = subCategory;
     itemVariation.store = store;
     itemVariation.brand = brand;
-  
+
     await this.itemVariationRepository.save(itemVariation);
   }
-  
-  private async createVariationsForAttributes(attr: any, payload: CreateItemDto, item: ItemsEntity, store: Store,brand: Brand,category: CategoryEntity, subCategory: SubCategoryEntity) {
+
+  private async createVariationsForAttributes(attr: any, payload: CreateItemDto, item: ItemsEntity, store: Store, brand: Brand, category: CategoryEntity, subCategory: SubCategoryEntity) {
     for (const variation of attr.variations) {
       const itemVariation = new ItemVariation();
       itemVariation.item = item;
@@ -129,15 +130,15 @@ export class ItemsService {
       itemVariation.subCategory = subCategory;
       itemVariation.store = store;
       itemVariation.brand = brand;
-  
+
       await this.itemVariationRepository.save(itemVariation);
-  
+
       // Create item variation attribute
       const itemVariationValue = new ItemVariationAttribute();
       itemVariationValue.itemVariation = itemVariation;
       const attribute = await this.attributesRepository.findOne({ where: { id: attr.attributeId.id } });
       const attributeValue = await this.attributesValueRepository.findOne({ where: { id: variation.attributeValueId } });
-  
+
       if (attribute && attributeValue) {
         itemVariationValue.attribute = attribute;
         itemVariationValue.attributeValue = attributeValue;
@@ -147,8 +148,8 @@ export class ItemsService {
       }
     }
   }
-  
-  
+
+
   async findAll(): Promise<any> {
     return await this.itemsRepository.find({
       relations: ['itemVariations']
@@ -156,30 +157,30 @@ export class ItemsService {
   }
   async findAll1(): Promise<any> {
     const queryBuilder = this.itemsRepository.createQueryBuilder('item')
-    .innerJoinAndSelect('item.itemType','itemType')
-    .innerJoinAndSelect('item.itemVariations', 'variation')
-    .leftJoinAndSelect('variation.category','category')
-    .leftJoinAndSelect('variation.itemVariationAttributes', 'attr')
-    .leftJoinAndSelect('attr.attribute', 'attribute')
-    .leftJoinAndSelect('attr.attributeValue', 'attributeValue')
+      .innerJoinAndSelect('item.itemType', 'itemType')
+      .innerJoinAndSelect('item.itemVariations', 'variation')
+      .leftJoinAndSelect('variation.category', 'category')
+      .leftJoinAndSelect('variation.itemVariationAttributes', 'attr')
+      .leftJoinAndSelect('attr.attribute', 'attribute')
+      .leftJoinAndSelect('attr.attributeValue', 'attributeValue')
     // .where('item.name LIKE :name', { name: `%${name}%` });
 
-     const items = await queryBuilder.getMany();
-     return items;
+    const items = await queryBuilder.getMany();
+    return items;
   }
 
   async findItemDetials(itemId: number): Promise<any> {
     const item = await this.itemsRepository.findOne({
-      relations: ['itemType','itemVariations','itemVariations.category','itemVariations.brand'],
-      where: {id: itemId}
+      relations: ['itemType', 'itemVariations', 'itemVariations.category', 'itemVariations.brand'],
+      where: { id: itemId }
     })
-    const itemDetials =  await this.itemVariationAttributeRepository.find({
+    const itemDetials = await this.itemVariationAttributeRepository.find({
       relations: {
         attribute: true,
         attributeValue: true,
         itemVariation: true,
       },
-      where: {itemVariation: {item: {id: itemId}}}
+      where: { itemVariation: { item: { id: itemId } } }
     })
 
     return {
@@ -209,7 +210,7 @@ export class ItemsService {
 
   async findItemTypes() {
     return this.itemTypeRepository.find({
-      where: {isActive : true}
+      where: { isActive: true }
     })
   }
 
@@ -223,8 +224,26 @@ export class ItemsService {
 
   async getAllBrands() {
     return await this.brandRepository.find({
-      where: {active: true}
+      where: { active: true }
     })
+  }
+
+  async updateItemVariation(itemVariationId: number, payload: ItemVariationDto) {
+    const itemVariation = await this.itemVariationRepository.findOneBy({
+      id: itemVariationId
+    })
+
+    if (!itemVariation) {
+      throw new NotAcceptableException('this item variation not found');
+    }
+
+    itemVariation.cost = payload.itemCost;
+    itemVariation.price = payload.itemPrice;
+    itemVariation.sku = payload.sku;
+    itemVariation.stockAlert = payload.stockAlert;
+
+    return await this.itemVariationRepository.save(itemVariation);
+
   }
 
 }

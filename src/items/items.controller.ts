@@ -3,6 +3,7 @@ import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Filter } from './dto/filter.dto';
+import { ItemVariationDto } from './dto/item-variation.dto';
 
 @Controller('items')
 export class ItemsController {
@@ -53,6 +54,11 @@ export class ItemsController {
   @Get('/brands')
   async getAllBrands(): Promise<any> {
     return await this.itemsService.getAllBrands();
+  }
+
+  @Patch('/updateitemvariation/:id')
+  async updateItemVariation(@Param('id') id: number, @Body() payload: ItemVariationDto) {
+    return await this.itemsService.updateItemVariation(id, payload);
   }
 
 }
