@@ -246,4 +246,41 @@ export class ItemsService {
 
   }
 
+  async addItemVariation(payload: ItemVariationDto) {
+    const findItem = await this.itemVariationRepository.findOne({
+      relations: ['item', 'category', 'store', 'subCategory'],
+      where: { id: payload.itemId }
+    });
+
+    if (!findItem) {
+      throw new NotFoundException('Item not found');
+    }
+
+    const itemVariation = this.itemVariationRepository.create({
+      name: findItem.item.name,
+      item: findItem.item,
+      store: findItem.store,
+      category: findItem.category,
+      subCategory: findItem.subCategory,
+      sku: payload.sku,
+      cost: payload.itemCost,
+      price: payload.itemPrice
+    });
+
+    const savedItemVariation = await this.itemVariationRepository.save(itemVariation);
+
+    if (payload.attributeId && payload.attributeValueId) {
+      const itemAttributes = this.itemVariationAttributeRepository.create({
+        itemVariation: savedItemVariation,
+        attribute: { id: payload.attributeId },
+        attributeValue: { id: payload.attributeValueId }
+      });
+
+      return this.itemVariationAttributeRepository.save(itemAttributes);
+    }
+
+    return savedItemVariation;
+  }
+
+
 }

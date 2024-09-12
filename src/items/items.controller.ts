@@ -61,4 +61,8 @@ export class ItemsController {
     return await this.itemsService.updateItemVariation(id, payload);
   }
 
+  @Patch('/additemvariation')
+  async addItemVariation(@Body() payload: ItemVariationDto) {
+    return await this.itemsService.addItemVariation(payload);
+  }
 }

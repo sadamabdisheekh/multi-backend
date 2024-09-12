@@ -1,7 +1,19 @@
 import { Type } from 'class-transformer';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class ItemVariationDto {
+    @IsOptional()
+    @IsNumber()
+    itemId?: number;
+
+    @IsOptional()
+    @IsNumber()
+    attributeId?: number;
+
+    @IsOptional()
+    @IsNumber()
+    attributeValueId?: number
+
     @Type(() => Number)
     itemCost: number;
 
