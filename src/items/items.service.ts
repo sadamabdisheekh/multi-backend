@@ -262,6 +262,9 @@ export class ItemsService {
       store: findItem.store,
       category: findItem.category,
       subCategory: findItem.subCategory,
+      stock: payload.stock ?? 10,
+      description: payload.description ?? '',
+      stockAlert: payload.stockAlert,      
       sku: payload.sku,
       cost: payload.itemCost,
       price: payload.itemPrice

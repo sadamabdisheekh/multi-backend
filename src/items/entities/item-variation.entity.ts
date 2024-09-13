@@ -70,7 +70,7 @@ export class ItemVariation {
   @Column({ type: 'time',nullable: true })
   available_time_ends: string;
 
-  @Column({type: 'text'})
+  @Column({type: 'text',nullable: true})
   description:string
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

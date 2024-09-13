@@ -24,5 +24,12 @@ export class ItemVariationDto {
     sku: string;
 
     @Type(() => Number)
+    stock?: number;
+
+    @Type(() => Number)
     stockAlert: number;
+
+    @IsOptional()
+    @IsString()
+    description: string;
 }
