@@ -27,6 +27,7 @@ import { Attribute } from './items/entities/attribute.entity';
 import { ItemVariationAttribute } from './items/entities/item-variation-attribute.entity';
 import { ItemVariation } from './items/entities/item-variation.entity';
 import { Brand } from './items/entities/brand.entity';
+import { ItemModule } from './item/item.module';
 
 
 @Module({
@@ -57,6 +58,7 @@ import { Brand } from './items/entities/brand.entity';
     CategoryModule,
     ItemsModule,
     StoresModule,
+    ItemModule,
   ],
   controllers: [AppController],
   providers: [AppService],
