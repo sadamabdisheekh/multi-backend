@@ -1,23 +1,33 @@
-export class AttributeNameDto {
-    id: number;
-    name: string;
-  }
+import { IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+
+export class CreateItemDto {
+  @IsInt()
+  itemTypeId: number;
+
+  @IsString()
+  name: string;
+
+  @IsInt()
+  brandId: number;
+
+  @IsInt()
+  categoryId: number;
+
+  @IsOptional()
+  @IsInt()
+  subCategoryId?: number;
+
+  @IsOptional()
+  @IsInt()
+  childSubCategoryId?: number;
+
+  @IsString()
+  description: string;
+
+  @IsNumber()
+  price: number;
+
+  @IsInt()
+  stock: number;
   
-  export class AttributeDto {
-    attribute: string;
-    name: AttributeNameDto[];
-  }
-  
-  export class VariationDto {
-    id: number;
-    variation: string;
-    stock: number | null;
-    price: number | null;
-    ids: number[];
-  }
-  
-  export class CreateItemDto {
-    variation: VariationDto[];
-    attributes: AttributeDto[];
-  }
-  
+}

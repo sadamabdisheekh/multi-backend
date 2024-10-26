@@ -7,19 +7,14 @@ import { UpdateItemDto } from './dto/update-item.dto';
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
-  @Post()
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemService.create(createItemDto);
+  @Post('/additem')
+  async create(@Body() payload: CreateItemDto): Promise<any> {
+    return await this.itemService.createItem(payload);
   }
 
-  @Get()
-  findAll() {
-    return this.itemService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.itemService.findOne(+id);
+  @Get('/getitems')
+  async getItems() {
+    return await this.itemService.getItems();
   }
 
   @Patch(':id')
@@ -31,4 +26,20 @@ export class ItemController {
   remove(@Param('id') id: string) {
     return this.itemService.remove(+id);
   }
+
+  // item types
+
+  @Get('/finditemtypes')
+  async getItemTypes(): Promise<any> {
+   return await this.itemService.getItemTypes();
+  }
+
+  // brand
+
+  @Get('/brands')
+  async getBrands(): Promise<any> {
+   return await this.itemService.getBrands();
+  }
+
+
 }

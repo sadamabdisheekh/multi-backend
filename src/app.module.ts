@@ -14,20 +14,19 @@ import { ModuleZoneEntity } from './module-zone/module-zone.entity';
 import { CategoryModule } from './category/category.module';
 import { CategoryEntity } from './category/entities/category.entity';
 import { MulterModule } from '@nestjs/platform-express';
-import { ItemsModule } from './items/items.module';
-import { ItemsEntity } from './items/entities/item.entity';
 import { StoresModule } from './stores/stores.module';
 import { Store } from './stores/entities/store.entity';
 import { StoreSchedule } from './stores/entities/store-schedule.entity';
-import { ItemTypes } from './items/entities/item-type.entity';
 import { SubCategoryEntity } from './category/entities/sub-category.entity';
 import { ChildSubCategoryEntity } from './category/entities/child-sub-category.entity';
-import { AttributeValue } from './items/entities/attribute-value.entity';
-import { Attribute } from './items/entities/attribute.entity';
-import { ItemVariationAttribute } from './items/entities/item-variation-attribute.entity';
-import { ItemVariation } from './items/entities/item-variation.entity';
-import { Brand } from './items/entities/brand.entity';
 import { ItemModule } from './item/item.module';
+import { Brand } from './item/entities/brand.entity';
+import { ItemTypes } from './item/entities/itemType.entity';
+import { Item } from './item/entities/item.entity';
+import { Attribute } from './item/entities/attribute.entity';
+import { AttributeValue } from './item/entities/attributeValue.entity';
+import { ItemVariation } from './item/entities/itemVariation.entity';
+import { ItemVariationAttributes } from './item/entities/itemVariationAttributes.entity';
 
 
 @Module({
@@ -45,8 +44,8 @@ import { ItemModule } from './item/item.module';
       entities: [
         UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         CategoryEntity, SubCategoryEntity, ChildSubCategoryEntity,
-        ItemsEntity, Store,StoreSchedule, Attribute, AttributeValue, 
-        ItemVariation, ItemVariationAttribute,ItemTypes,Brand
+        Store,StoreSchedule,ItemTypes,Brand,Item,Attribute,AttributeValue,
+        ItemVariation,ItemVariationAttributes
       ],
       synchronize: true,
     }),
@@ -56,7 +55,6 @@ import { ItemModule } from './item/item.module';
     ZonesModule,
     ModuleZoneModule,
     CategoryModule,
-    ItemsModule,
     StoresModule,
     ItemModule,
   ],

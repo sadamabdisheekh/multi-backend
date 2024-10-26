@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { SubCategoryEntity } from "./sub-category.entity";
-import { ItemVariation } from "src/items/entities/item-variation.entity";
+import { Item } from "src/item/entities/item.entity";
 
 @Entity('childsubcategory')
 export class ChildSubCategoryEntity {
@@ -25,6 +25,6 @@ export class ChildSubCategoryEntity {
     @Column()
     created_at: Date;
 
-    @OneToMany(() => ItemVariation, item => item.childSubCategory)
-    items: ItemVariation[];
+    @OneToMany(() => Item, item => item.child_sub_category)
+    item: Item[];
 }
