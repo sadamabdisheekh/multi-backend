@@ -1,23 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
 import { Item } from './item.entity';
 
 @Entity()
+@Unique(["name"])
 export class Category {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 255 })
+  @Column()
   name: string;
 
-  @Column('text')
-  description: string;
+  @Column({ default: true }) // New field added here
+  isActive: boolean;
 
-  @OneToMany(() => Item, (item) => item.category)
+  @OneToMany(() => Item, item => item.category)
   items: Item[];
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 }

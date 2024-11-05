@@ -1,52 +1,36 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Brand } from './brand.entity';
-import { ItemTypes } from './itemType.entity';
-import { CategoryEntity } from 'src/category/entities/category.entity';
-import { SubCategoryEntity } from 'src/category/entities/sub-category.entity';
-import { ChildSubCategoryEntity } from 'src/category/entities/child-sub-category.entity';
-import { ItemVariation } from './itemVariation.entity';
+import { ItemTypes } from './item-type.entity';
+import { ItemVariation } from './item-variation.entity';
+import { Category } from './category.entity';
 
 @Entity()
 export class Item {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column({ length: 255 })
-  name: string;
+    @Column()
+    name: string;
 
-  @Column('text')
-  description: string;
+    @Column('text', { nullable: true })
+    description: string;
 
-  @ManyToOne(() => CategoryEntity, (category) => category.items)
-  category: CategoryEntity;
+    @ManyToOne(() => ItemTypes, itemType => itemType.items)
+    @JoinColumn({name: 'itemtypeid'})
+    itemType: ItemTypes;
 
-  @ManyToOne(() => SubCategoryEntity, (subCategory) => subCategory.item)
-  sub_category: SubCategoryEntity;
+    @ManyToOne(() => Category, category => category.items)
+    category: Category;
 
-  @ManyToOne(() => ChildSubCategoryEntity, (ch_s_category) => ch_s_category.item)
-  child_sub_category: ChildSubCategoryEntity;
+    @ManyToOne(() => Brand, brand => brand.items)
+    brand: Brand;
 
-  @ManyToOne(() => Brand, (brand) => brand.item)
-  brand: Brand;
+    @CreateDateColumn({ type: 'timestamp' })
+    createdAt: Date;
 
-  @ManyToOne(() => ItemTypes, (itemType) => itemType.items)
-  itemType: ItemTypes;
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedAt: Date;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2,nullable: true })
-  price: number;
-
-  @Column({ type: 'int', nullable: true })
-  stock: number;
-
-  @Column({ type: 'int', default: 0 ,nullable:true})
-  stockAlert: number; 
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
-
-  @OneToMany(() => ItemVariation, itemVariation => itemVariation.item)
-  itemVariation: ItemVariation[];
+    @OneToMany(() => ItemVariation, variation => variation.item)
+    variations: ItemVariation[];
 }

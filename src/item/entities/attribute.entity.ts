@@ -1,16 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { AttributeValue } from './attribute-value.entity';
 
 @Entity()
 export class Attribute {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 255 })
+  @Column()
   name: string;
 
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
+  @OneToMany(() => AttributeValue, value => value.attribute)
+  values: AttributeValue[];
 }

@@ -1,7 +1,7 @@
 import { ZoneEntity } from 'src/zones/zone.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { StoreSchedule } from './store-schedule.entity';
-import { ItemVariation } from 'src/item/entities/itemVariation.entity';
+import { StoreItem } from './store-item.entity';
 
 @Entity('stores')
 export class Store {
@@ -52,6 +52,6 @@ export class Store {
   @OneToMany(() => StoreSchedule, schedule => schedule.store)
   schedules: StoreSchedule[];
 
-  @OneToMany(() => ItemVariation, itemVariation => itemVariation.store)
-  itemVariation: ItemVariation[];
+  @OneToMany(() => StoreItem, storeItem => storeItem.store)
+  storeItems: StoreItem[];
 }

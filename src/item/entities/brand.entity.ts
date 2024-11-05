@@ -1,17 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
 import { Item } from './item.entity';
 
-@Entity('brands') // You can customize the table name by passing a string
+@Entity()
+@Unique(["name"])
 export class Brand {
-  @PrimaryGeneratedColumn()
-  brandId: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
+    @Column()
+    name: string;
 
-  @Column({ type: 'boolean', default: true })
-  active: boolean;
+    @Column({ default: true }) // New field added here
+    isActive: boolean;
 
-  @OneToMany(() => Item, (item) => item.brand)
-  item: Item[];
+    @OneToMany(() => Item, item => item.brand)
+    items: Item[];
 }

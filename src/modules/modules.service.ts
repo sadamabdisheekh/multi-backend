@@ -4,8 +4,7 @@ import { UpdateModuleDto } from './dto/update-module.dto';
 import { ModuleEntity } from './module.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as fs from 'fs';
-import { deleteFile, uploadFile } from 'common/utils.file';
+import {uploadFile } from 'common/utils.file';
 import { UploadedFilePaths } from 'common/enum';
 
 @Injectable()

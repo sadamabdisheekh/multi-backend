@@ -41,5 +41,16 @@ export class ItemController {
    return await this.itemService.getBrands();
   }
 
+  // category
+
+  @Get('/getcategories')
+  async getCategories(): Promise<any> {
+   return await this.itemService.getCategories();
+  }
+
+  @Get('/getattributes')
+  async getAttributesWithValue(): Promise<any> {
+   return await this.itemService.getAttributesWithValue();
+  }
 
 }
