@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { AttributeDto, CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
@@ -124,9 +124,17 @@ export class ItemService {
   
   
 
-  async getItems(): Promise<any> {
+  async getItems(storeId: number): Promise<any> {
+
+    const store = await this.storeRepository.findOneOrFail({
+      where: { id: storeId },
+    }).catch(() => {
+      throw new NotFoundException(`Store with ID ${storeId} not found`);
+    });
+
     return await this.itemsRepository.find({
-      relations: ['itemType','brand','category']
+      where: {storeItem: {store}},
+      relations: ['itemType','brand','category','storeItem.store']
     })
   }
 

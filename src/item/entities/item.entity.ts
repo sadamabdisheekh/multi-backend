@@ -3,6 +3,7 @@ import { Brand } from './brand.entity';
 import { ItemTypes } from './item-type.entity';
 import { ItemVariation } from './item-variation.entity';
 import { Category } from './category.entity';
+import { StoreItem } from 'src/stores/entities/store-item.entity';
 
 @Entity()
 export class Item {
@@ -30,6 +31,9 @@ export class Item {
 
     @UpdateDateColumn({ type: 'timestamp' })
     updatedAt: Date;
+
+    @OneToMany(() => StoreItem, storeItem => storeItem.item)
+    storeItem: StoreItem[];
 
     @OneToMany(() => ItemVariation, variation => variation.item)
     variations: ItemVariation[];

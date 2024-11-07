@@ -12,7 +12,7 @@ export class StoreItem {
     @ManyToOne(() => Store, store => store.storeItems)
     store: Store;
 
-    @ManyToOne(() => Item, item => item.variations)
+    @ManyToOne(() => Item, item => item.storeItem)
     item: Item;
 
     @ManyToOne(() => ItemVariation, variation => variation.id, { nullable: true })
