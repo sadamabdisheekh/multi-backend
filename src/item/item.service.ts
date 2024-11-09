@@ -12,6 +12,7 @@ import { ItemVariation } from './entities/item-variation.entity';
 import { ItemVariationAttribute } from './entities/item-variation-attribute.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { Attribute } from './entities/attribute.entity';
+import { ItemDetailsDto } from './dto/item-details.dto';
 
 @Injectable()
 export class ItemService {
@@ -101,7 +102,7 @@ export class ItemService {
     for (const id of attributeIds) {
       await this.itemVariationAttributeRepository.save(
         this.itemVariationAttributeRepository.create({
-          variation,
+          itemVariation: variation,
           attributeValue: { id },
         })
       );
@@ -113,7 +114,7 @@ export class ItemService {
     await this.storeItemRepository.save(
       this.storeItemRepository.create({
         item,
-        variation,
+        itemVariation: variation,
         price: attr.price,
         stock: attr.stock,
         store,
@@ -132,11 +133,39 @@ export class ItemService {
       throw new NotFoundException(`Store with ID ${storeId} not found`);
     });
 
-    return await this.itemsRepository.find({
+    const item = await this.itemsRepository.find({
       where: {storeItem: {store}},
-      relations: ['itemType','brand','category','storeItem.store']
+      relations: ['itemType','brand','category']
     })
+
+    return {
+      item,
+      store
+    }
   }
+
+  async getItemDetails(payload: ItemDetailsDto) {
+  const item = await this.itemsRepository.findOneByOrFail({
+    id: payload.itemId      
+  }).catch(() => {
+    throw new NotFoundException(`Item with ID ${payload.itemId} not found`);
+  });
+
+  const store = await this.storeRepository.findOneByOrFail({
+    id: payload.storeId      
+  }).catch(() => {
+    throw new NotFoundException(`Store with ID ${payload.storeId} not found`);
+  });
+
+  const itemDetails = await this.itemVariationRepository.find({
+    where: {item: {id: item.id},storeItem: {store: {id: store.id}}},
+    relations: ['storeItem'],
+  });
+
+  return itemDetails;
+}
+
+
 
   update(id: number, updateItemDto: UpdateItemDto) {
     return `This action updates a #${id} item`;

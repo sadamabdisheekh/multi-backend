@@ -1,14 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Item } from './item.entity';
 import { ItemVariationAttribute } from './item-variation-attribute.entity';
+import { StoreItem } from 'src/stores/entities/store-item.entity';
 
 @Entity()
 export class ItemVariation {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Item, item => item.variations)
-    item: Item;
 
     @Column({ unique: true })
     sku: string;
@@ -19,6 +18,13 @@ export class ItemVariation {
     @UpdateDateColumn({ type: 'timestamp' })
     updatedAt: Date;
 
-    @OneToMany(() => ItemVariationAttribute, attribute => attribute.variation)
+    @ManyToOne(() => Item, item => item.itemVariations)
+    item: Item;
+
+    @OneToMany(() => ItemVariationAttribute, attribute => attribute.itemVariation)
     attributes: ItemVariationAttribute[];
+    
+    @OneToMany(() => StoreItem, storeItem => storeItem.itemVariation)
+    storeItem: StoreItem[];
+    
 }

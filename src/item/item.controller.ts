@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe 
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
+import { ItemDetailsDto } from './dto/item-details.dto';
 
 @Controller('item')
 export class ItemController {
@@ -15,6 +16,11 @@ export class ItemController {
   @Get('/getitems')
   async getItems(@Query('storeId', ParseIntPipe) storeId: number) {
     return await this.itemService.getItems(storeId);
+  }
+
+  @Post('/getitemsdetails')
+  async getItemDetails(@Body() payload: ItemDetailsDto) {
+    return await this.itemService.getItemDetails(payload);
   }
 
   @Patch(':id')

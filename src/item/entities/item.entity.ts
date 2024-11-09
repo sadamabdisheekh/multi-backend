@@ -35,6 +35,6 @@ export class Item {
     @OneToMany(() => StoreItem, storeItem => storeItem.item)
     storeItem: StoreItem[];
 
-    @OneToMany(() => ItemVariation, variation => variation.item)
-    variations: ItemVariation[];
+    @OneToMany(() => ItemVariation, (itemVariation) => itemVariation.item)
+    itemVariations: ItemVariation[];
 }

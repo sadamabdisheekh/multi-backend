@@ -9,7 +9,7 @@ export class ItemVariationAttribute  {
   id: number;
 
   @ManyToOne(() => ItemVariation, variation => variation.attributes)
-  variation: ItemVariation;
+  itemVariation: ItemVariation;
 
   @ManyToOne(() => AttributeValue, value => value.id)
   attributeValue: AttributeValue;

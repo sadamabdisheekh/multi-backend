@@ -15,8 +15,8 @@ export class StoreItem {
     @ManyToOne(() => Item, item => item.storeItem)
     item: Item;
 
-    @ManyToOne(() => ItemVariation, variation => variation.id, { nullable: true })
-    variation: ItemVariation;
+    @ManyToOne(() => ItemVariation, variation => variation.storeItem, { nullable: true })
+    itemVariation: ItemVariation;
 
     @Column('decimal', { precision: 10, scale: 2 })
     price: number;
