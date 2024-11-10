@@ -157,10 +157,27 @@ export class ItemService {
     throw new NotFoundException(`Store with ID ${payload.storeId} not found`);
   });
 
-  const itemDetails = await this.itemVariationRepository.find({
-    where: {item: {id: item.id},storeItem: {store: {id: store.id}}},
-    relations: ['storeItem'],
-  });
+  let itemDetails = null;
+
+  if (item.itemType.item_type_id == 1) {
+    itemDetails = await this.itemsRepository.find({
+      where: {
+        id: item.id,
+        storeItem: {
+          store: {id: store.id}
+        }
+      },
+      relations: ['storeItem']
+    })
+  } else {
+    itemDetails = await this.itemVariationRepository.find({
+      where: {
+        item: { id: item.id },
+        storeItem: { store: { id: store.id } },
+      },      
+      relations: ['storeItem'],
+    });
+  }
 
   return itemDetails;
 }
