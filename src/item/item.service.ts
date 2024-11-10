@@ -145,17 +145,15 @@ export class ItemService {
   }
 
   async getItemDetails(payload: ItemDetailsDto) {
-  const item = await this.itemsRepository.findOneByOrFail({
-    id: payload.itemId      
-  }).catch(() => {
-    throw new NotFoundException(`Item with ID ${payload.itemId} not found`);
-  });
 
-  const store = await this.storeRepository.findOneByOrFail({
-    id: payload.storeId      
-  }).catch(() => {
-    throw new NotFoundException(`Store with ID ${payload.storeId} not found`);
-  });
+    const [item, store] = await Promise.all([
+      this.itemsRepository.findOneByOrFail({ id: payload.itemId }).catch(() => {
+        throw new NotFoundException(`Item with ID ${payload.itemId} not found`);
+      }),
+      this.storeRepository.findOneByOrFail({ id: payload.storeId }).catch(() => {
+        throw new NotFoundException(`Store with ID ${payload.storeId} not found`);
+      }),
+    ]);
 
   let itemDetails = null;
 
