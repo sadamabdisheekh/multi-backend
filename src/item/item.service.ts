@@ -147,7 +147,10 @@ export class ItemService {
   async getItemDetails(payload: ItemDetailsDto) {
 
     const [item, store] = await Promise.all([
-      this.itemsRepository.findOneByOrFail({ id: payload.itemId }).catch(() => {
+      this.itemsRepository.findOneOrFail({
+        where: { id: payload.itemId },
+        relations:  ['itemType']}
+      ).catch(() => {
         throw new NotFoundException(`Item with ID ${payload.itemId} not found`);
       }),
       this.storeRepository.findOneByOrFail({ id: payload.storeId }).catch(() => {
@@ -155,29 +158,20 @@ export class ItemService {
       }),
     ]);
 
-  let itemDetails = null;
+    const isSingleItem = item.itemType.item_type_id == 1;
 
-  if (item.itemType.item_type_id == 1) {
-    itemDetails = await this.itemsRepository.find({
-      where: {
-        id: item.id,
-        storeItem: {
-          store: {id: store.id}
-        }
-      },
-      relations: ['storeItem']
-    })
-  } else {
-    itemDetails = await this.itemVariationRepository.find({
-      where: {
-        item: { id: item.id },
-        storeItem: { store: { id: store.id } },
-      },      
-      relations: ['storeItem'],
-    });
-  }
+    const repository = isSingleItem
+      ? this.itemsRepository
+      : this.itemVariationRepository;
+  
+    const queryConditions = isSingleItem
+      ? { id: item.id, storeItem: { store: { id: store.id } } }
+      : { item: { id: item.id }, storeItem: { store: { id: store.id } } };
 
-  return itemDetails;
+      return await repository.find({
+        where: queryConditions,
+        relations: ['storeItem'],
+      });
 }
 
 
