@@ -10,9 +10,7 @@ export class ModulesController {
   constructor(private readonly modulesService: ModulesService) { }
 
   @Post('add')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: memoryStorage(),
-  }))
+  @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body() payload: CreateModuleDto

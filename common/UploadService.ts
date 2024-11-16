@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { diskStorage } from 'multer';
+import { Injectable } from '@nestjs/common';
 import { extname } from 'path';
-import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
+import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class UploadService {
@@ -10,26 +10,48 @@ export class UploadService {
 
   validateFile(file: Express.Multer.File): void {
     if (!this.allowedTypes.includes(file.mimetype)) {
-      throw new BadRequestException('Unsupported file type!');
+      throw new Error('Unsupported file type');
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      throw new BadRequestException('File size exceeds the limit of 5MB!');
+      throw new Error('File size exceeds the 5MB limit');
     }
   }
 
-  saveFile(file: Express.Multer.File, destination: string = './uploads'): string {
+  deleteFile(filePath: string): boolean {
+    try {
+      const fullPath = path.resolve(filePath);
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath); // Delete the file
+        return true;
+      } else {
+        throw new Error('File not found');
+      }
+    } catch (error) {
+      console.error(`Error deleting file: ${error.message}`);
+      return false;
+    }
+  }
+
+  saveFile(file: Express.Multer.File, destination: string = './uploads',originalPath: string = ''): string {
     this.validateFile(file);
 
-    const filename = `${uuidv4()}${extname(file.originalname)}`;
+    const timestamp = Date.now();
+    const ext = extname(file.originalname);
+    const originalName = file.originalname.replace(ext, '').replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `${originalName}-${timestamp}-${uuidv4()}${ext}`;
     const filePath = `${destination}/${filename}`;
+
+    // Check if file already exists, delete if necessary
+    if (fs.existsSync(originalPath)) {
+      this.deleteFile(originalPath); // Delete the old file if it exists
+    }
 
     if (!fs.existsSync(destination)) {
       fs.mkdirSync(destination, { recursive: true });
     }
 
-    fs.writeFileSync(filePath, file.buffer);
-
+    fs.writeFileSync(filePath, file.buffer); // Save the new file
     return filename;
   }
 }

@@ -5,10 +5,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Store } from './entities/store.entity';
 import { Repository } from 'typeorm';
 import { ZoneEntity } from 'src/zones/zone.entity';
-import { uploadFile } from 'common/utils.file';
-import { UploadedFilePaths } from 'common/enum';
+import { FilePaths } from 'common/enum';
 import { StoreSchedule } from './entities/store-schedule.entity';
 import { SchedulesDto } from './dto/store-schedule.dto';
+import { UploadService } from 'common/UploadService';
 
 @Injectable()
 export class StoresService {
@@ -18,6 +18,7 @@ export class StoresService {
     private readonly storeScheduleRepository: Repository<StoreSchedule>,
     @InjectRepository(ZoneEntity)
     private readonly zoneRepository: Repository<ZoneEntity>,
+    private readonly uploadService: UploadService
   ) { }
 
   async create(file: Express.Multer.File, payload: CreateStoreDto) {
@@ -42,7 +43,7 @@ export class StoresService {
       throw new NotFoundException(`can't find zone`);
     }
 
-    const savedFile = uploadFile(file, UploadedFilePaths.STORES);
+    const fileName = this.uploadService.saveFile(file, FilePaths.STORES);
 
 
 
@@ -50,7 +51,7 @@ export class StoresService {
       name: payload.name,
       phone: payload.phone,
       email: payload.email,
-      logo: savedFile.filename,
+      logo: fileName,
       latitude: payload.latitude,
       longitude: payload.longitude,
       address: payload.address,
@@ -91,12 +92,12 @@ export class StoresService {
       throw new NotFoundException(`Can't find zone`);
     }
 
-    let newFile = null;
+    let fileName = null;
 
     if (file) {
       try {
-        const existingFilePath = UploadedFilePaths.STORES + payload.logo;
-        newFile = await uploadFile(file, UploadedFilePaths.STORES, existingFilePath);
+        const existingFilePath = FilePaths.STORES + payload.logo;
+        fileName =  this.uploadService.saveFile(file, FilePaths.STORES, existingFilePath);
       } catch (error) {
         throw new BadRequestException(`Failed to process the file: ${error.message}`);
       }
@@ -107,7 +108,7 @@ export class StoresService {
     findStore.phone = payload.phone;
     findStore.address = payload.address;
     findStore.comission = payload.commission;
-    findStore.logo = newFile ? newFile.filename : payload.logo;
+    findStore.logo = fileName ? fileName : payload.logo;
     findStore.latitude = payload.latitude;
     findStore.longitude = payload.longitude;
     findStore.minimum_order = payload.minimum_order;
