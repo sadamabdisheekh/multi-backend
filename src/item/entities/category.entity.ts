@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, CreateDateColumn } from 'typeorm';
 import { Item } from './item.entity';
 
 @Entity()
@@ -12,6 +12,12 @@ export class Category {
 
   @Column({ default: true }) // New field added here
   isActive: boolean;
+
+  @Column()
+  image: string
+
+  @CreateDateColumn({type: 'timestamp'})
+  created_at:Date
 
   @OneToMany(() => Item, item => item.category)
   items: Item[];

@@ -14,29 +14,33 @@ import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { Attribute } from './entities/attribute.entity';
 import { ItemDetailsDto } from './dto/item-details.dto';
 import { UpdateStoreItemDto } from './dto/update-store-item.dto';
+import { UploadService } from 'common/UploadService';
+import { FilePaths } from 'common/enum';
 
 @Injectable()
 export class ItemService {
-
+constructor(
   @InjectRepository(Item)
-  private itemsRepository: Repository<Item>
+  private itemsRepository: Repository<Item>,
   @InjectRepository(Store)
-  private readonly storeRepository: Repository<Store>
+  private readonly storeRepository: Repository<Store>,
   @InjectRepository(ItemTypes)
-  private readonly itemTypeRepository: Repository<ItemTypes>
+  private readonly itemTypeRepository: Repository<ItemTypes>,
   @InjectRepository(ItemVariation)
-  private readonly itemVariationRepository: Repository<ItemVariation>
+  private readonly itemVariationRepository: Repository<ItemVariation>,
   @InjectRepository(ItemVariationAttribute)
-  private readonly itemVariationAttributeRepository: Repository<ItemVariationAttribute>
+  private readonly itemVariationAttributeRepository: Repository<ItemVariationAttribute>,
   @InjectRepository(Brand)
-  private readonly brandRepository: Repository<Brand>
+  private readonly brandRepository: Repository<Brand>,
   @InjectRepository(Category)
-  private readonly categoryRepository: Repository<Category>
+  private readonly categoryRepository: Repository<Category>,
   @InjectRepository(StoreItem)
-  private readonly storeItemRepository: Repository<StoreItem>
+  private readonly storeItemRepository: Repository<StoreItem>,
   @InjectRepository(Attribute)
-  private readonly attributeRepository: Repository<Attribute>
+  private readonly attributeRepository: Repository<Attribute>,
+  private readonly uploadService: UploadService, 
 
+){}
   async createItem(payload: CreateItemDto) {
     // Check if the store exists and retrieve the store object
     const store = await this.storeRepository.findOneBy({ id: payload.storeId });
@@ -207,10 +211,19 @@ export class ItemService {
   }
 
   // categories
-  async getCategories() {
-    return await this.categoryRepository.find({
-      where: {isActive: true}
+  async addCategory(file: Express.Multer.File,payload: any) {
+
+    const fileName = this.uploadService.saveFile(file, FilePaths.CATEGERORY);
+    const category = this.categoryRepository.create({
+      name: payload.name,
+      isActive: payload.isActive,
+      image: fileName
     })
+    return await this.categoryRepository.save(category)
+  }
+
+  async getCategories() {
+    return await this.categoryRepository.find()
   }
   // categories
   async getAttributesWithValue() {

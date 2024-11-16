@@ -11,6 +11,7 @@ import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { ItemVariation } from './entities/item-variation.entity';
 import { ItemVariationAttribute } from './entities/item-variation-attribute.entity';
 import { Attribute } from './entities/attribute.entity';
+import { UploadService } from 'common/UploadService';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
@@ -19,6 +20,6 @@ import { Attribute } from './entities/attribute.entity';
     Attribute
   ])],
   controllers: [ItemController],
-  providers: [ItemService],
+  providers: [ItemService,UploadService],
 })
 export class ItemModule {}

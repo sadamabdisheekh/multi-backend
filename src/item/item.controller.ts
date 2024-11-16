@@ -1,11 +1,10 @@
-import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
-import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemDetailsDto } from './dto/item-details.dto';
 import { UpdateStoreItemDto } from './dto/update-store-item.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('item')
 export class ItemController {
@@ -51,6 +50,19 @@ export class ItemController {
   }
 
   // category
+
+  @Post('/addcategory')
+  @UseInterceptors(FileInterceptor('file'))
+  async addCategory(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() payload: any
+  ): Promise<any> {
+    if (!file) {
+      throw new BadRequestException('File is not defined');
+    }
+   return await this.itemService.addCategory(file,payload);
+  }
+
 
   @Get('/getcategories')
   async getCategories(): Promise<any> {

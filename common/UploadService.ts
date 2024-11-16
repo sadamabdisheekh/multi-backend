@@ -33,7 +33,7 @@ export class UploadService {
     }
   }
 
-  saveFile(file: Express.Multer.File, destination: string = './uploads',originalPath: string = ''): string {
+  saveFile(file: Express.Multer.File, destination: string = './uploads',originalPath: string = null): string {
     this.validateFile(file);
 
     const timestamp = Date.now();
@@ -43,7 +43,7 @@ export class UploadService {
     const filePath = `${destination}/${filename}`;
 
     // Check if file already exists, delete if necessary
-    if (fs.existsSync(originalPath)) {
+    if (originalPath && fs.existsSync(originalPath)) {
       this.deleteFile(originalPath); // Delete the old file if it exists
     }
 
