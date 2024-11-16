@@ -26,6 +26,7 @@ import { ItemVariation } from './item/entities/item-variation.entity';
 import { Category } from './item/entities/category.entity';
 import { ItemVariationAttribute } from './item/entities/item-variation-attribute.entity';
 import { StoreItem } from './stores/entities/store-item.entity';
+import { UserProfile } from './users/user-profile.entity';
 
 
 @Module({
@@ -41,7 +42,7 @@ import { StoreItem } from './stores/entities/store-item.entity';
       password: 'mypassword',
       database: 'multi',
       entities: [
-        UserEntity, ModuleEntity, ZoneEntity, ModuleZoneEntity,
+        UserEntity,UserProfile, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         Store,StoreItem,StoreSchedule,ItemTypes,Brand,Item,Attribute,AttributeValue,
         ItemVariation,ItemVariationAttribute,Category
       ],
@@ -57,5 +58,6 @@ import { StoreItem } from './stores/entities/store-item.entity';
   ],
   controllers: [AppController],
   providers: [AppService],
+  exports: []
 })
 export class AppModule { }

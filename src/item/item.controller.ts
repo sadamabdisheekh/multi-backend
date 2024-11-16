@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemDetailsDto } from './dto/item-details.dto';
+import { UpdateStoreItemDto } from './dto/update-store-item.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('item')
 export class ItemController {
@@ -18,21 +21,21 @@ export class ItemController {
     return await this.itemService.getItems(storeId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/getitemsdetails')
-  async getItemDetails(@Body() payload: ItemDetailsDto) {
+  async getItemDetails(@Body() payload: ItemDetailsDto,@Request() req) {
+    const user = req.user;
     return await this.itemService.getItemDetails(payload);
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
-    return this.itemService.update(+id, updateItemDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.itemService.remove(+id);
   }
 
+  @Post('/updatestoreitem')
+  updateStoreItem(@Body() payload: UpdateStoreItemDto) {
+    return this.itemService.updateStoreItem(payload)
+  }
   // item types
 
   @Get('/finditemtypes')

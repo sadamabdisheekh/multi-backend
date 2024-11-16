@@ -14,24 +14,22 @@ export class AuthService {
   async signIn(
     payload: LoginDto
   ): Promise<any> {
-    const { mobile, password } = payload;
-    const user = await this.usersService.findByMobileAndPassword(mobile, password);
-    if (!user) {
-      throw new NotFoundException('invalid mobile or password');
+
+    const user = await this.usersService.findByMobileAndPassword(payload.mobile, payload.password);
+    
+    const { password, ...result } = user;
+    result['role'] = 'All';
+    result['token'] = this.jwtService.sign(result);
+    
+    return result;
+  }
+
+  async validateUser(mobile: string, pass: string): Promise<any> {
+    const user = await this.usersService.getByMobileAndPass(mobile,pass);
+    if (user && user.password === pass) {
+      const { password, ...result } = user;
+      return result;
     }
-
-    const userData = {
-      userId: user.userId,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.mobile,
-      role: 'All',
-      accessToken: null
-    };
-
-    // Generate JWT token
-    const accessToken = await this.jwtService.signAsync(userData);
-    userData.accessToken = accessToken;
-    return userData;
+    return null;
   }
 }

@@ -13,6 +13,7 @@ import { ItemVariationAttribute } from './entities/item-variation-attribute.enti
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { Attribute } from './entities/attribute.entity';
 import { ItemDetailsDto } from './dto/item-details.dto';
+import { UpdateStoreItemDto } from './dto/update-store-item.dto';
 
 @Injectable()
 export class ItemService {
@@ -149,8 +150,7 @@ export class ItemService {
     const [item, store] = await Promise.all([
       this.itemsRepository.findOneOrFail({
         where: { id: payload.itemId },
-        relations:  ['itemType']}
-      ).catch(() => {
+      }).catch(() => {
         throw new NotFoundException(`Item with ID ${payload.itemId} not found`);
       }),
       this.storeRepository.findOneByOrFail({ id: payload.storeId }).catch(() => {
@@ -158,27 +158,35 @@ export class ItemService {
       }),
     ]);
 
-    const isSingleItem = item.itemType.item_type_id == 1;
 
-    const repository = isSingleItem
-      ? this.itemsRepository
-      : this.itemVariationRepository;
-  
-    const queryConditions = isSingleItem
-      ? { id: item.id, storeItem: { store: { id: store.id } } }
-      : { item: { id: item.id }, storeItem: { store: { id: store.id } } };
+    return await this.storeItemRepository.find({
+      where: {
+        item: {id: item.id},
+        store: {id: store.id}
+      },
+      relations: ['item.itemType','store','itemVariation']
+    })
+    }
 
-      return await repository.find({
-        where: queryConditions,
-        relations: ['storeItem'],
+    async updateStoreItem(payload: UpdateStoreItemDto) {
+      const {itemId,storeId,itemVariation,price,stock} = payload;
+      const storeItem = await this.storeItemRepository.findOne({
+        where: {
+          store: { id: storeId },
+          item: { id: itemId },
+          itemVariation: { sku: itemVariation },
+        },
       });
-}
 
+      if (!storeItem) {
+        throw new NotFoundException(`store item not found`);
+      }
 
+      storeItem.price = price;
+      storeItem.stock = stock;
 
-  update(id: number, updateItemDto: UpdateItemDto) {
-    return `This action updates a #${id} item`;
-  }
+      return await this.storeItemRepository.save(storeItem);
+    }
 
   remove(id: number) {
     return `This action removes a #${id} item`;

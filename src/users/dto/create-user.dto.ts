@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class UserDto {
     userId: number;
@@ -15,4 +15,7 @@ export class UserDto {
     mobile: string;
     @IsNotEmpty()
     password: string;
+
+    @IsNumber()
+    storeId: number;
 }
