@@ -3,7 +3,7 @@ import { AttributeDto, CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Store } from 'src/stores/entities/store.entity';
 import { ItemTypes } from './entities/item-type.entity';
 import { Brand } from './entities/brand.entity';
@@ -231,4 +231,45 @@ constructor(
       relations: ['values']
     })
   }
+
+  async getParentCategories(): Promise<Category[]> {
+    return await this.categoryRepository.find({ 
+      where: {parentId: IsNull()},
+      relations: ['parent', 'children'] 
+    });
+
+    // const categories = await this.categoryRepository.createQueryBuilder('category')
+    //   .leftJoinAndSelect('category.children', 'child')
+    //   .where('category.parentId IS NULL')
+    //   .getMany();
+    // return categories;
+  }
+
+
+  async loadCategoryHierarchy(parent: number | null = null): Promise<Category[]> {
+    const queryBuilder = this.categoryRepository.createQueryBuilder('category')
+      .leftJoinAndSelect('category.children', 'children');
+  
+    if (parent === null) {
+      queryBuilder.where('category.parentId IS NULL');
+    } else {
+      queryBuilder.where('category.parentId = :parentId', { parentId: parent });
+    }
+  
+    const categories = await queryBuilder.getMany();
+  
+    for (const category of categories) {
+      category.children = await this.loadCategoryHierarchy(category.id); // Recursively load children
+    }
+  
+    return categories;
+  }
+  
+
+  
+  
+
+
+
+  
 }

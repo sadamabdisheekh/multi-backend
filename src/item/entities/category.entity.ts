@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, CreateDateColumn, ManyToOne, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { Item } from './item.entity';
 
 @Entity()
@@ -16,8 +16,21 @@ export class Category {
   @Column()
   image: string
 
+  @Column({ nullable: true })
+  parentId: number | null;
+
+  @ManyToOne(() => Category, (category) => category.children,{nullable: true})
+  @JoinColumn({ name: 'parentId' })
+  parent: Category;
+
+  @OneToMany(() => Category, (category) => category.parent,{nullable: true})
+  children: Category[];
+
   @CreateDateColumn({type: 'timestamp'})
-  created_at:Date
+  createdAt:Date
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(() => Item, item => item.category)
   items: Item[];

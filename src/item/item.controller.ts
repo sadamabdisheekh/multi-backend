@@ -74,4 +74,9 @@ export class ItemController {
    return await this.itemService.getAttributesWithValue();
   }
 
+  @Get('parent-category')
+  async getTopLevelCategories() {
+    return await this.itemService.loadCategoryHierarchy();
+  }
+
 }
