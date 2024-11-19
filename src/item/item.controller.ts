@@ -74,9 +74,13 @@ export class ItemController {
    return await this.itemService.getAttributesWithValue();
   }
 
-  @Get('parent-category')
-  async getTopLevelCategories() {
-    return await this.itemService.loadCategoryHierarchy();
+  @Get('getcategoryhierarchy')
+  async getCategoryHierarchy(@Query('categoryId') categoryId: any) {
+    const parsedCategoryId = categoryId && categoryId != 'null' ? Number(categoryId) : null;
+    if (categoryId && isNaN(parsedCategoryId)) {
+      throw new BadRequestException('Invalid categoryId. It must be a number or empty.');
+    }
+    return await this.itemService.getCategoryHierarchy(parsedCategoryId);
   }
 
 }

@@ -246,7 +246,7 @@ constructor(
   }
 
 
-  async loadCategoryHierarchy(parent: number | null = null): Promise<Category[]> {
+  async getCategoryHierarchy(parent: number | null = null): Promise<Category[]> {
     const queryBuilder = this.categoryRepository.createQueryBuilder('category')
       .leftJoinAndSelect('category.children', 'children');
   
@@ -259,7 +259,7 @@ constructor(
     const categories = await queryBuilder.getMany();
   
     for (const category of categories) {
-      category.children = await this.loadCategoryHierarchy(category.id); // Recursively load children
+      category.children = await this.getCategoryHierarchy(category.id); // Recursively load children
     }
   
     return categories;
