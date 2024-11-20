@@ -16,6 +16,7 @@ import { ItemDetailsDto } from './dto/item-details.dto';
 import { UpdateStoreItemDto } from './dto/update-store-item.dto';
 import { UploadService } from 'common/UploadService';
 import { FilePaths } from 'common/enum';
+import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 
 @Injectable()
 export class ItemService {
@@ -232,20 +233,6 @@ constructor(
     })
   }
 
-  async getParentCategories(): Promise<Category[]> {
-    return await this.categoryRepository.find({ 
-      where: {parentId: IsNull()},
-      relations: ['parent', 'children'] 
-    });
-
-    // const categories = await this.categoryRepository.createQueryBuilder('category')
-    //   .leftJoinAndSelect('category.children', 'child')
-    //   .where('category.parentId IS NULL')
-    //   .getMany();
-    // return categories;
-  }
-
-
   async getCategoryHierarchy(parent: number | null = null): Promise<Category[]> {
     const queryBuilder = this.categoryRepository.createQueryBuilder('category')
       .leftJoinAndSelect('category.children', 'children');
@@ -264,12 +251,33 @@ constructor(
   
     return categories;
   }
+
+  async getItemsByFilter(filterDto: FindItemsByFilterDto) {
+    const { categoryId, brandId } = filterDto;
+
+    const whereConditions:  any = {
+      item: {
+        category: { id: categoryId },
+      },
+    };
   
+    if (brandId) {
+      whereConditions.item.brand = { id: brandId };
+    }
 
-  
-  
-
-
-
+    const items = await this.storeItemRepository.find({
+      where: whereConditions,
+      relations: {
+        item: true,
+        store: true,
+        itemVariation: {
+         attributes: {
+          attributeValue: true,
+         } 
+        }
+      }
+    })
+    return items;
+  }
   
 }
