@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Patch } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemDetailsDto } from './dto/item-details.dto';
 import { UpdateStoreItemDto } from './dto/update-store-item.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 
 @Controller('item')
 export class ItemController {
@@ -69,6 +70,16 @@ export class ItemController {
    return await this.itemService.getCategories();
   }
 
+  @Patch('updatecategory/:id')
+  @UseInterceptors(FileInterceptor('file'))
+  update(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('id', ParseIntPipe) id: number, 
+    @Body() payload: any
+  ) {
+    return this.itemService.updateCategory(id,file, payload);
+  }
+
   @Get('/getattributes')
   async getAttributesWithValue(): Promise<any> {
    return await this.itemService.getAttributesWithValue();
@@ -83,4 +94,10 @@ export class ItemController {
     return await this.itemService.getCategoryHierarchy(parsedCategoryId);
   }
 
+  @Post('getitemsbyfilter')
+  async getItemsByFilter(
+    @Body() filterDto: FindItemsByFilterDto
+  ) {
+    return await this.itemService.getItemsByFilter(filterDto);
+  }
 }

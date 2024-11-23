@@ -1,9 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { AttributeDto, CreateItemDto } from './dto/create-item.dto';
-import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import {  In, Repository } from 'typeorm';
 import { Store } from 'src/stores/entities/store.entity';
 import { ItemTypes } from './entities/item-type.entity';
 import { Brand } from './entities/brand.entity';
@@ -223,6 +222,32 @@ constructor(
     return await this.categoryRepository.save(category)
   }
 
+  async updateCategory(id:number,file: Express.Multer.File,payload: any) {
+    const {name,status} = payload;
+
+    const category = await this.categoryRepository.findOneBy({
+      id
+    });
+    if (!category) {
+      throw new NotFoundException(`category not found`);
+    }
+
+
+    let filePath = null;
+    if (file) {
+      filePath = this.uploadService.saveFile(file,FilePaths.CATEGERORY,FilePaths.CATEGERORY + category.image);
+    }
+
+    category.name = name;
+    category.isActive = status;
+    if (filePath) {
+      category.image = filePath;
+    }
+
+    return await this.categoryRepository.save(category);
+
+  }
+
   async getCategories() {
     return await this.categoryRepository.find()
   }
@@ -255,9 +280,13 @@ constructor(
   async getItemsByFilter(filterDto: FindItemsByFilterDto) {
     const { categoryId, brandId } = filterDto;
 
+    const categoryChildren = await this.getCategoryHierarchy(categoryId);
+
+    const categoryIds = this.flattenCategoryIds(categoryChildren, [categoryId]);
+
     const whereConditions:  any = {
       item: {
-        category: { id: categoryId },
+        category: { id: In(categoryIds) }, 
       },
     };
   
@@ -278,6 +307,16 @@ constructor(
       }
     })
     return items;
+  }
+
+  private flattenCategoryIds(categories: Category[], result: number[] = []): number[] {
+    for (const category of categories) {
+      result.push(category.id);
+      if (category.children) {
+        this.flattenCategoryIds(category.children, result);
+      }
+    }
+    return result;
   }
   
 }
