@@ -4,6 +4,7 @@ import { ItemTypes } from './item-type.entity';
 import { ItemVariation } from './item-variation.entity';
 import { Category } from './category.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
+import { ItemUnit } from './item-unit.entity';
 
 @Entity()
 export class Item {
@@ -16,9 +17,15 @@ export class Item {
     @Column('text', { nullable: true })
     description: string;
 
+    @Column('text')
+    image: string
+
     @ManyToOne(() => ItemTypes, itemType => itemType.items)
     @JoinColumn({name: 'itemtypeid'})
     itemType: ItemTypes;
+
+    @ManyToOne(() => ItemUnit, itemUnit => itemUnit.items)
+    itemUnit: ItemTypes;
 
     @ManyToOne(() => Category, category => category.items)
     category: Category;

@@ -27,6 +27,7 @@ import { Category } from './item/entities/category.entity';
 import { ItemVariationAttribute } from './item/entities/item-variation-attribute.entity';
 import { StoreItem } from './stores/entities/store-item.entity';
 import { UserProfile } from './users/user-profile.entity';
+import { ItemUnit } from './item/entities/item-unit.entity';
 
 
 @Module({
@@ -43,7 +44,7 @@ import { UserProfile } from './users/user-profile.entity';
       database: 'multi',
       entities: [
         UserEntity,UserProfile, ModuleEntity, ZoneEntity, ModuleZoneEntity,
-        Store,StoreItem,StoreSchedule,ItemTypes,Brand,Item,Attribute,AttributeValue,
+        Store,StoreItem,StoreSchedule,ItemTypes,ItemUnit,Brand,Item,Attribute,AttributeValue,
         ItemVariation,ItemVariationAttribute,Category
       ],
       synchronize: true,
