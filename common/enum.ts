@@ -3,4 +3,5 @@ export enum FilePaths {
     CATEGERORY = 'uploads/category/',
     SUBCATEGERORY = 'uploads/category/',
     STORES = 'uploads/stores/',
+    ITEMS = 'uploads/items/',
   }

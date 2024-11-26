@@ -17,7 +17,7 @@ export class Item {
     @Column('text', { nullable: true })
     description: string;
 
-    @Column('text')
+    @Column('text', {nullable: true})
     image: string
 
     @ManyToOne(() => ItemTypes, itemType => itemType.items)

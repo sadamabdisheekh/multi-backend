@@ -6,14 +6,31 @@ import { UpdateStoreItemDto } from './dto/update-store-item.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Controller('item')
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
   @Post('/additem')
-  async create(@Body() payload: CreateItemDto): Promise<any> {
-    return await this.itemService.createItem(payload);
+  @UseInterceptors(FileInterceptor('file'))
+  async create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('jsondata') jsondata: string 
+  ): Promise<any> {
+    if (!file) {
+      throw new BadRequestException('File is not defined');
+    }
+
+    const parsedData = plainToInstance(CreateItemDto, JSON.parse(jsondata));
+
+    const errors = await validate(parsedData);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+    
+    return await this.itemService.createItem(parsedData,file);
   }
 
   @Get('/getitems')

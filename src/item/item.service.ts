@@ -41,7 +41,7 @@ constructor(
   private readonly uploadService: UploadService, 
 
 ){}
-  async createItem(payload: CreateItemDto) {
+  async createItem(payload: CreateItemDto,file:Express.Multer.File) {
     // Check if the store exists and retrieve the store object
     const store = await this.storeRepository.findOneBy({ id: payload.storeId });
     if (!store) {
@@ -54,15 +54,25 @@ constructor(
         name: payload.name,
         itemType: { item_type_id: payload.itemTypeId },
       },
-    }) ?? await this.itemsRepository.save(
-      this.itemsRepository.create({
-        name: payload.name,
-        itemType: { item_type_id: payload.itemTypeId },
-        category: { id: payload.categoryId },
-        brand: { id: payload.brandId },
-        description: payload.description,
-      })
-    );
+    });
+
+    if (!item) {
+      let filename = null;
+      if (file) {
+       filename =  this.uploadService.saveFile(file,FilePaths.ITEMS);
+      }
+      item = await this.itemsRepository.save(
+        this.itemsRepository.create({
+          name: payload.name,
+          itemType: { item_type_id: payload.itemTypeId },
+          category: { id: payload.categoryId },
+          brand: { id: payload.brandId },
+          image: filename,
+          description: payload.description,
+        })
+      );
+
+    }
   
     // Handle attributes if itemTypeId is 2
     if (payload.itemTypeId === 2 && payload.attribute) {
