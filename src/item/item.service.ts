@@ -16,6 +16,7 @@ import { UpdateStoreItemDto } from './dto/update-store-item.dto';
 import { UploadService } from 'common/UploadService';
 import { FilePaths } from 'common/enum';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
+import { ItemImage } from './entities/item-images';
 
 @Injectable()
 export class ItemService {
@@ -39,6 +40,8 @@ constructor(
   @InjectRepository(Attribute)
   private readonly attributeRepository: Repository<Attribute>,
   private readonly uploadService: UploadService, 
+  @InjectRepository(ItemImage)
+  private readonly itemImagesRepository: Repository<ItemImage>,
 
 ){}
   async createItem(payload: CreateItemDto,file:Express.Multer.File) {
@@ -67,7 +70,7 @@ constructor(
           itemType: { item_type_id: payload.itemTypeId },
           category: { id: payload.categoryId },
           brand: { id: payload.brandId },
-          image: filename,
+          thumbnail: filename,
           description: payload.description,
         })
       );
@@ -327,6 +330,35 @@ constructor(
       }
     }
     return result;
+  }
+
+  async uploadItemImages(itemId: number, files: Express.Multer.File[]): Promise<void> {
+    const uploadPromises = files.map(async (file) => {
+      const filename = this.uploadService.saveFile(file, FilePaths.ITEMS);
+      if (!filename) throw new Error(`Failed to save file: ${file.originalname}`);
+  
+      const itemImage = this.itemImagesRepository.create({
+        item: { id: itemId },
+        image_url: filename,
+      });
+  
+      await this.itemImagesRepository.save(itemImage);
+    });
+  
+    try {
+      await Promise.all(uploadPromises);
+    } catch (error) {
+      console.error(`Error uploading images for item ${itemId}:`, error);
+      throw error; // Propagate the error to the caller
+    }
+  }
+
+  async getItemImage(itemId: number) {
+    return await this.itemImagesRepository.find({
+      where: {
+        item: {id: itemId},
+      }
+    })
   }
   
 }

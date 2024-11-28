@@ -12,10 +12,11 @@ import { ItemVariation } from './entities/item-variation.entity';
 import { ItemVariationAttribute } from './entities/item-variation-attribute.entity';
 import { Attribute } from './entities/attribute.entity';
 import { UploadService } from 'common/UploadService';
+import { ItemImage } from './entities/item-images';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
-    Category,Store,StoreItem,ItemTypes,
+    Category,Store,StoreItem,ItemTypes,ItemImage,
     Item,Brand,ItemVariation,ItemVariationAttribute,
     Attribute
   ])],

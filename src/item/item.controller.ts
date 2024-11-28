@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Patch, UploadedFiles } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemDetailsDto } from './dto/item-details.dto';
 import { UpdateStoreItemDto } from './dto/update-store-item.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -116,5 +116,28 @@ export class ItemController {
     @Body() filterDto: FindItemsByFilterDto
   ) {
     return await this.itemService.getItemsByFilter(filterDto);
+  }
+
+  @Post(':itemId/images')
+  @UseInterceptors(FilesInterceptor('files')) // Handles multiple file uploads
+  async uploadItemImages(
+    @Param('itemId', ParseIntPipe) itemId: number,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<{ message: string }> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    try {
+      await this.itemService.uploadItemImages(itemId, files);
+      return { message: 'Images uploaded successfully' };
+    } catch (error) {
+      throw new BadRequestException(`Failed to upload images: ${error.message}`);
+    }
+  }
+
+  @Get('itemimages/:itemId')
+  async getItemImage(@Param('itemId') itemId: number) {
+    return await this.itemService.getItemImage(itemId);
   }
 }
