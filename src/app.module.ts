@@ -29,6 +29,14 @@ import { StoreItem } from './stores/entities/store-item.entity';
 import { UserProfile } from './users/user-profile.entity';
 import { ItemUnit } from './item/entities/item-unit.entity';
 import { ItemImage } from './item/entities/item-images';
+import { CartModule } from './cart/cart.module';
+import { Cart } from './cart/entities/cart.entity';
+import { CartItem } from './cart/entities/cart-item.entity';
+import { SalesModule } from './sales/sales.module';
+import { Order } from './sales/entities/order.entity';
+import { OrderItem } from './sales/entities/order-item.entity';
+import { Payment } from './sales/entities/payment.entity';
+import { Shipping } from './sales/entities/shipping.entity';
 
 
 @Module({
@@ -46,7 +54,7 @@ import { ItemImage } from './item/entities/item-images';
       entities: [
         UserEntity,UserProfile, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         Store,StoreItem,StoreSchedule,ItemTypes,ItemUnit,ItemImage,Brand,Item,Attribute,AttributeValue,
-        ItemVariation,ItemVariationAttribute,Category
+        ItemVariation,ItemVariationAttribute,Category,Cart,CartItem,Order,OrderItem,Payment,Shipping
       ],
       synchronize: true,
     }),
@@ -57,6 +65,8 @@ import { ItemImage } from './item/entities/item-images';
     ModuleZoneModule,
     StoresModule,
     ItemModule,
+    CartModule,
+    SalesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

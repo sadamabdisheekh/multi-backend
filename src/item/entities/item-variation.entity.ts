@@ -2,6 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Up
 import { Item } from './item.entity';
 import { ItemVariationAttribute } from './item-variation-attribute.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
+import { CartItem } from 'src/cart/entities/cart-item.entity';
+import { OrderItem } from 'src/sales/entities/order-item.entity';
 
 @Entity()
 export class ItemVariation {
@@ -26,5 +28,11 @@ export class ItemVariation {
     
     @OneToMany(() => StoreItem, storeItem => storeItem.itemVariation)
     storeItem: StoreItem[];
+
+    @OneToMany(() => CartItem, (cartItem) => cartItem.variation)
+    cartItem: CartItem[];
+
+    @OneToMany(() => OrderItem, orderItem => orderItem.variation)
+    orderItem: OrderItem[];
     
 }

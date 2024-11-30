@@ -3,6 +3,8 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGene
 import { StoreSchedule } from './store-schedule.entity';
 import { StoreItem } from './store-item.entity';
 import { UserProfile } from 'src/users/user-profile.entity';
+import { CartItem } from 'src/cart/entities/cart-item.entity';
+import { OrderItem } from 'src/sales/entities/order-item.entity';
 
 @Entity('stores')
 export class Store {
@@ -58,4 +60,10 @@ export class Store {
 
   @OneToMany(() => UserProfile, profile => profile.store)
   profile: UserProfile;
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.store)
+  cartItem: CartItem[];
+
+  @OneToMany(() => OrderItem, orderItem => orderItem.store)
+  orderItem: OrderItem[];
 }

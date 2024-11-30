@@ -6,6 +6,9 @@ import { Category } from './category.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { ItemUnit } from './item-unit.entity';
 import { ItemImage } from './item-images';
+import { CartItem } from 'src/cart/entities/cart-item.entity';
+import { Order } from 'src/sales/entities/order.entity';
+import { OrderItem } from 'src/sales/entities/order-item.entity';
 
 @Entity()
 export class Item {
@@ -48,4 +51,10 @@ export class Item {
 
     @OneToMany(() => ItemImage, (itemImage) => itemImage.item)
     images: ItemImage[];
+
+    @OneToMany(() => CartItem, (cartItem) => cartItem.item)
+    cartItem: CartItem[];
+
+    @OneToMany(() => OrderItem, orderItem => orderItem.item)
+    orderItem: OrderItem[];
 }
