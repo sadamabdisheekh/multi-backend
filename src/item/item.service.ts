@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { AttributeDto, CreateItemDto } from './dto/create-item.dto';
 import { Item } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -312,11 +312,6 @@ constructor(
       relations: {
         item: true,
         store: true,
-        itemVariation: {
-         attributes: {
-          attributeValue: true,
-         } 
-        }
       }
     })
     return items;
@@ -360,5 +355,66 @@ constructor(
       }
     })
   }
+  
+  async removeItemImage(id: number) {
+    const itemImage = await this.itemImagesRepository.findOne({ where: { id } });
+  
+    if (!itemImage) {
+      throw new NotFoundException(`Image with ID ${id} not found. Deletion not possible.`);
+    }
+  
+    try {
+      await this.itemImagesRepository.remove(itemImage);
+  
+      this.uploadService.deleteFile(FilePaths.ITEMS + itemImage.image_url);
+  
+      return; 
+    } catch (error) {
+      throw new InternalServerErrorException('An error occurred while deleting the image.');
+    }
+  }
+
+  async getItemDetailsForMobile(itemStoreId: number) {
+    try {
+      const itemStore = await this.storeItemRepository.findOne({
+        relations: {
+          store: true,
+          item: {
+            images: true,
+            itemUnit: true
+          },
+          itemVariation: {
+            attributes: {
+              attributeValue: true,
+            },
+          },
+        },
+        where: { id: itemStoreId },
+      });
+  
+      if (!itemStore) {
+        throw new Error(`ItemStore with ID ${itemStoreId} not found.`);
+      }
+  
+      const attributeValueIds = itemStore.itemVariation?.attributes?.map(
+        (attr) => attr?.attributeValue?.id
+      ) || [];
+  
+      const attributes = await this.attributeRepository.find({
+        where: { values: { id: In(attributeValueIds) } },
+        relations: ['values'],
+      });
+  
+      return {
+        itemStore,
+        attributes,
+      };
+    } catch (error) {
+      console.error(`Error fetching item details: ${error.message}`);
+      throw new InternalServerErrorException('Unable to fetch item details. Please try again later.');
+    }
+  }
+  
+  
   
 }

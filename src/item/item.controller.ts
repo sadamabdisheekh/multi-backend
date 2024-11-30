@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Patch, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, Delete, Query, ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Patch, UploadedFiles, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemDetailsDto } from './dto/item-details.dto';
@@ -139,5 +139,23 @@ export class ItemController {
   @Get('itemimages/:itemId')
   async getItemImage(@Param('itemId') itemId: number) {
     return await this.itemService.getItemImage(itemId);
+  }
+
+  @Delete('removeimage/:id')
+  async removeItemImage(@Param('id') id: number) {
+    try {
+      await this.itemService.removeItemImage(id);
+      return { message: 'Image successfully deleted' };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw error;
+    }
+  }
+
+  @Get('getItemDetailsForMobile')
+  async getItemDetailsForMobile(@Query('storeItemId') storeItemId: number) {
+    return this.itemService.getItemDetailsForMobile(storeItemId);
   }
 }
