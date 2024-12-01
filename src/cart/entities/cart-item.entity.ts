@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Item } from 'src/item/entities/item.entity';
 import { Store } from 'src/stores/entities/store.entity';
@@ -28,9 +28,9 @@ export class CartItem {
   @Column()
   price: number;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @UpdateDateColumn()
   updatedAt: Date;
 }
