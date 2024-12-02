@@ -62,8 +62,25 @@ export class CartService {
   }
   
 
-  findAll() {
-    return `This action returns all cart`;
+  async findAll(id: number) {
+    
+    const userCart =  await this.cartRepository.findOne({
+      relations: ['user'],
+      where: {
+        user: {userId : id}
+      }
+    })
+
+    const cartItems  = await this.cartItemRepository.findOne({
+      relations: {
+        store: true,
+        item: true,
+        variation: true,
+      },
+      where: {cart: {cart_id: userCart.cart_id}}
+    })
+
+    return cartItems;
   }
 
   findOne(id: number) {

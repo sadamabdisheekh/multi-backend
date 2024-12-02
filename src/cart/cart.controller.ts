@@ -11,11 +11,12 @@ export class CartController {
   async createCart(@Body() createCartDto: CartDto) {
     return await this.cartService.create(createCartDto);
   }
-
-  @Get()
-  findAll() {
-    return this.cartService.findAll();
+  
+  @Get('/usercartitems/:userId')
+  findAll(@Param('userId') userId: number) {
+    return this.cartService.findAll(userId);
   }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {
