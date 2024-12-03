@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Req } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('cart')
 export class CartController {
@@ -12,8 +13,10 @@ export class CartController {
     return await this.cartService.create(createCartDto);
   }
   
-  @Get('/usercartitems/:userId')
-  findAll(@Param('userId') userId: number) {
+  @UseGuards(JwtAuthGuard)
+  @Get('/getcartitems')
+  findAll(@Request() req) {
+    const userId = req.user.userId;
     return this.cartService.findAll(userId);
   }
 

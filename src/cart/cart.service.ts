@@ -42,7 +42,9 @@ export class CartService {
   
     // Check for an existing cart item for the given store item and variation
     let cartItem = await this.cartItemRepository.findOne({
-      where: { item: {id: storeItem.item.id}, store: {id: storeItem.store.id} },
+      where: { item: {id: storeItem.item.id}, store: {id: storeItem.store.id},
+      variation: {id: storeItem.itemVariation?.id || null},
+    cart: {cart_id: cart.cart_id} },
     });
   
     if (cartItem) {
@@ -58,30 +60,35 @@ export class CartService {
       });
     }
   
-    await this.cartItemRepository.save(cartItem);
+    return await this.cartItemRepository.save(cartItem);
   }
   
 
   async findAll(id: number) {
-    
-    const userCart =  await this.cartRepository.findOne({
+    // Find the user's cart by userId
+    const userCart = await this.cartRepository.findOne({
       relations: ['user'],
       where: {
-        user: {userId : id}
+        user: { userId: id }
       }
-    })
-
-    const cartItems  = await this.cartItemRepository.findOne({
+    });
+  
+  if (!userCart) {
+      throw new Error('Cart not found');
+    }
+  
+    const cartItems = await this.cartItemRepository.find({
       relations: {
         store: true,
         item: true,
         variation: true,
       },
-      where: {cart: {cart_id: userCart.cart_id}}
-    })
-
+      where: { cart: { cart_id: userCart.cart_id } } 
+    });
+  
     return cartItems;
   }
+  
 
   findOne(id: number) {
     return `This action returns a #${id} cart`;
