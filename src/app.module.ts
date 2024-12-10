@@ -37,26 +37,36 @@ import { Order } from './sales/entities/order.entity';
 import { OrderItem } from './sales/entities/order-item.entity';
 import { Payment } from './sales/entities/payment.entity';
 import { Shipping } from './sales/entities/shipping.entity';
+import { CustomersModule } from './customers/customers.module';
+import { Customer } from './customers/entities/customer.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
     MulterModule.register({
       dest: './uploads', // Destination folder for uploaded files
     }),
-    TypeOrmModule.forRoot({
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
       type: 'mysql',
-      host: '127.0.0.1',
-      port: 3306,
-      username: 'root',
-      password: 'mypassword',
-      database: 'multi',
+      host: configService.get<string>('DB_HOST'),
+      port: parseInt(configService.get<string>('DB_PORT')),
+      username: configService.get<string>('DB_USERNAME'),
+      password: configService.get<string>('DB_PASSWORD'),
+      database: configService.get<string>('DB_NAME'),
       entities: [
-        UserEntity,UserProfile, ModuleEntity, ZoneEntity, ModuleZoneEntity,
+        UserEntity,Customer,UserProfile, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         Store,StoreItem,StoreSchedule,ItemTypes,ItemUnit,ItemImage,Brand,Item,Attribute,AttributeValue,
         ItemVariation,ItemVariationAttribute,Category,Cart,CartItem,Order,OrderItem,Payment,Shipping
       ],
-      synchronize: true,
+      synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
+      })
     }),
     UsersModule,
     AuthModule,
@@ -67,6 +77,7 @@ import { Shipping } from './sales/entities/shipping.entity';
     ItemModule,
     CartModule,
     SalesModule,
+    CustomersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

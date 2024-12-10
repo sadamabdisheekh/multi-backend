@@ -2,13 +2,15 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) { }
 
   async signIn(
@@ -19,7 +21,10 @@ export class AuthService {
     
     const { password, ...result } = user;
     result['role'] = 'All';
-    result['token'] = this.jwtService.sign(result);
+    result['token'] = this.jwtService.sign(result,{
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: this.configService.get<string>('USER_TOKEN_EXPIRY'), // Users' tokens expire
+    });
     
     return result;
   }

@@ -11,7 +11,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
+  @Get('/all')
   async findAll() {
     return await this.usersService.findAll();
   }
