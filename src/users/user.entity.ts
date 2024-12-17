@@ -28,8 +28,6 @@ export class UserEntity extends BaseEntity {
     @OneToOne(() => UserProfile, profile => profile.user)
     profile: UserProfile;
 
-    @OneToMany(() => Cart, cart => cart.user)
-    carts: Cart[];
 
     @OneToMany(() => Order, order => order.user)
     orders: Order[];

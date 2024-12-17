@@ -19,9 +19,10 @@ export class AuthService {
 
     const user = await this.usersService.findByMobileAndPassword(payload.mobile, payload.password);
     
-    const { password, ...result } = user;
-    result['role'] = 'All';
-    result['token'] = this.jwtService.sign(result,{
+    const { password, ...result } = user as any;
+    result.role = 'All';
+    result.type = 'user';
+    result.token = this.jwtService.sign(result,{
       secret: this.configService.get<string>('JWT_SECRET'),
       expiresIn: this.configService.get<string>('USER_TOKEN_EXPIRY'), // Users' tokens expire
     });

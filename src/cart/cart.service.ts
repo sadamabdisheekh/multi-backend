@@ -4,17 +4,17 @@ import { UpdateCartDto } from './dto/update-cart.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
-import { UserEntity } from 'src/users/user.entity';
 import { CartItem } from './entities/cart-item.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
+import { Customer } from 'src/customers/entities/customer.entity';
 
 @Injectable()
 export class CartService {
   constructor(
     @InjectRepository(Cart) 
     private cartRepository: Repository<Cart>,
-    @InjectRepository(UserEntity) 
-    private userRepository: Repository<UserEntity>,
+    @InjectRepository(Customer) 
+    private customerRepository: Repository<Customer>,
     @InjectRepository(CartItem) 
     private cartItemRepository: Repository<CartItem>,
     @InjectRepository(StoreItem) 
@@ -22,14 +22,14 @@ export class CartService {
   ) {}
 
   async create(payload: CartDto) {
-    const user = await this.userRepository.findOne({ where: { userId: payload.userId } });
-    if (!user) {
-      throw new NotFoundException(`User with id ${payload.userId} not found`);
+    const customer = await this.customerRepository.findOne({ where: { id: payload.customerId } });
+    if (!customer) {
+      throw new NotFoundException(`User with id ${payload.customerId} not found`);
     }
   
-    let cart = await this.cartRepository.findOne({ where: { user: {userId : user.userId} } });
+    let cart = await this.cartRepository.findOne({ where: { customer: {id : customer.id} } });
     if (!cart) {
-      cart = await this.cartRepository.save(this.cartRepository.create({ user }));
+      cart = await this.cartRepository.save(this.cartRepository.create({ customer }));
     }
   
     const storeItem = await this.storeItemRepository.findOne({ 
@@ -67,9 +67,9 @@ export class CartService {
   async findAll(id: number) {
     // Find the user's cart by userId
     const userCart = await this.cartRepository.findOne({
-      relations: ['user'],
+      relations: ['customer'],
       where: {
-        user: { userId: id }
+        customer: { id }
       }
     });
   

@@ -4,7 +4,7 @@ import { IsInt, IsNumber, IsNotEmpty } from 'class-validator';
 export class CartDto {
   @IsInt()
   @IsNotEmpty()
-  userId: number;
+  customerId: number;
 
   @IsInt()
   @IsNotEmpty()

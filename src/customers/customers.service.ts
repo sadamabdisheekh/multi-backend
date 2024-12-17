@@ -37,20 +37,26 @@ export class CustomersService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const {password,...result} = customer;
+    const {password,...result} = customer as any;
 
-    result['role'] = 'customer';
-    result['token'] = this.jwtService.sign(result,{
+    result.type = 'customer';
+    result.token = this.jwtService.sign(result,{
       secret: this.configService.get<string>('JWT_SECRET'),
-      // expiresIn: this.configService.get<string>('CUSTOMER_TOKEN_EXPIRY'),
+      expiresIn: this.configService.get<string>('CUSTOMER_TOKEN_EXPIRY'),
     });
 
     return result;
 
   }
 
-  findAll() {
-    return `This action returns all customers`;
+  async findAll() {
+    const customers = await this.customerRepository.find({
+      select: [
+        'id', 'firstName', 'lastName', 'email', 
+        'mobile', 'isActive', 'createdAt', 'updatedAt'
+      ]
+    });
+    return customers;
   }
 
   findOne(id: number) {

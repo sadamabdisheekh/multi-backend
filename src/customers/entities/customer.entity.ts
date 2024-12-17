@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Cart } from 'src/cart/entities/cart.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 
 @Entity('customers')
 export class Customer {
@@ -28,4 +29,7 @@ export class Customer {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Cart, cart => cart.customer)
+  carts: Cart[];
 }
