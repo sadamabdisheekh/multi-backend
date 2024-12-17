@@ -2,8 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, 
 import { CartService } from './cart.service';
 import { CartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { CustomerAuthGuard } from 'src/auth/customer-auth.guard';
+import { CustomerAuthGuard } from 'src/auth/guards/customer-auth.guard';
 
 @Controller('cart')
 export class CartController {
@@ -16,7 +15,7 @@ export class CartController {
   
   @UseGuards(CustomerAuthGuard)
   @Get('/getcartitems')
-  findAll(@Request() req) {
+  findAll(@Request() req:any) {
     const customer = req.user;
     if (!customer.id) {
       throw new NotAcceptableException();

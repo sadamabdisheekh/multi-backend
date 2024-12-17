@@ -3,11 +3,10 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './jwt.strategy';
-import { LocalStrategy } from './local.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserJwtStrategy } from './strategies/user-jwt.strategy';
+import { CustomerJwtStrategy } from './strategies/customer-jwt.strategy';
 
 @Module({
   imports: [
@@ -17,12 +16,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('SHARED_JWT_SECRET'), 
       }),
     }),
   ],
   exports: [JwtModule],
   controllers: [AuthController],
-  providers: [AuthService,LocalStrategy,JwtStrategy],
+  providers: [AuthService,UserJwtStrategy, CustomerJwtStrategy],
 })
 export class AuthModule { }

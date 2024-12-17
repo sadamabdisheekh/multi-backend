@@ -3,11 +3,11 @@ import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemDetailsDto } from './dto/item-details.dto';
 import { UpdateStoreItemDto } from './dto/update-store-item.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
 
 @Controller('item')
 export class ItemController {
@@ -38,7 +38,7 @@ export class ItemController {
     return await this.itemService.getItems(storeId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserAuthGuard)
   @Post('/getitemsdetails')
   async getItemDetails(@Body() payload: ItemDetailsDto,@Request() req) {
     const user = req.user;

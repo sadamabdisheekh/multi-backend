@@ -12,9 +12,6 @@ export class Customer {
   @Column()
   lastName: string;
 
-  @Column({ unique: true })
-  email: string;
-
   @Column()
   mobile: string
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -13,6 +13,8 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) { }
 
+
+
   async signIn(
     payload: LoginDto
   ): Promise<any> {
@@ -21,9 +23,8 @@ export class AuthService {
     
     const { password, ...result } = user as any;
     result.role = 'All';
-    result.type = 'user';
     result.token = this.jwtService.sign(result,{
-      secret: this.configService.get<string>('JWT_SECRET'),
+      secret: this.configService.get<string>('USER_JWT_SECRET'),
       expiresIn: this.configService.get<string>('USER_TOKEN_EXPIRY'), // Users' tokens expire
     });
     

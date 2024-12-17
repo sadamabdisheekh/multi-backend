@@ -45,7 +45,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
+      envFilePath: '.env',
     }),
     MulterModule.register({
       dest: './uploads', // Destination folder for uploaded files

@@ -3,7 +3,7 @@ import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { LoginDto } from 'src/auth/dto/login.dto';
-import { CustomerAuthGuard } from 'src/auth/customer-auth.guard';
+import { CustomerAuthGuard } from 'src/auth/guards/customer-auth.guard';
 
 @Controller('customers')
 export class CustomersController {

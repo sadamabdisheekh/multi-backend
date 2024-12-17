@@ -13,7 +13,7 @@ import * as crypto from 'crypto';
 @Injectable()
 export class CustomersService {
   constructor(
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @InjectRepository(Customer) 
     private customerRepository: Repository<Customer>,
@@ -38,10 +38,8 @@ export class CustomersService {
     }
 
     const {password,...result} = customer as any;
-
-    result.type = 'customer';
     result.token = this.jwtService.sign(result,{
-      secret: this.configService.get<string>('JWT_SECRET'),
+      secret: this.configService.get<string>('CUSTOMER_JWT_SECRET'),
       expiresIn: this.configService.get<string>('CUSTOMER_TOKEN_EXPIRY'),
     });
 
@@ -52,7 +50,7 @@ export class CustomersService {
   async findAll() {
     const customers = await this.customerRepository.find({
       select: [
-        'id', 'firstName', 'lastName', 'email', 
+        'id', 'firstName', 'lastName', 
         'mobile', 'isActive', 'createdAt', 'updatedAt'
       ]
     });
