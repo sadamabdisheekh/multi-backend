@@ -118,6 +118,13 @@ export class ItemController {
     return await this.itemService.getItemsByFilter(filterDto);
   }
 
+  @Post('getitemattributes')
+  async getItemsAttributes(
+    @Body() filterDto: FindItemsByFilterDto
+  ) {
+    return await this.itemService.getItemAttributes(filterDto);
+  }
+
   @Post(':itemId/images')
   @UseInterceptors(FilesInterceptor('files')) // Handles multiple file uploads
   async uploadItemImages(

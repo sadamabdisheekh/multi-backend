@@ -38,4 +38,26 @@ export class CartController {
   remove(@Param('id') id: string) {
     return this.cartService.remove(+id);
   }
+
+  @UseGuards(CustomerAuthGuard)
+  @Get('/incrementquantity/:storeItemId')
+  async incrementItemQuantity(@Req() req:any,@Param('storeItemId') storeItemId: number) {
+    let customeId = req.user.id;
+    return await this.cartService.incrementItemQuantity(customeId,storeItemId)
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @Get('/decrementquantity/:storeItemId')
+  async decrementItemQuantity(@Req() req:any,@Param('storeItemId') storeItemId: number) {
+    let customeId = req.user.id;
+    return await this.cartService.decrementItemQuantity(customeId,storeItemId)
+  }
+
+  @UseGuards(CustomerAuthGuard)
+  @Get('/removecartitem/:storeItemId')
+  async removeCartItem(@Req() req:any,@Param('storeItemId') storeItemId: number) {
+    let customeId = req.user.id;
+    const resp = await this.cartService.removeCartItem(customeId,storeItemId)
+    return {message: "item removed successfully"};
+  }
 }

@@ -33,7 +33,6 @@ export class CartService {
     }
   
     const storeItem = await this.storeItemRepository.findOne({ 
-      relations: ['item','store','itemVariation'],
       where: { id: payload.storeItemId } 
     });
     if (!storeItem) {
@@ -42,10 +41,18 @@ export class CartService {
   
     // Check for an existing cart item for the given store item and variation
     let cartItem = await this.cartItemRepository.findOne({
-      where: { item: {id: storeItem.item.id}, store: {id: storeItem.store.id},
-      variation: {id: storeItem.itemVariation?.id || null},
+    where: {
+    storeItem: {id: storeItem.id},
     cart: {cart_id: cart.cart_id} },
     });
+
+    if (
+      (cartItem && cartItem.quantity > storeItem.availableStock) ||
+      (!cartItem && payload.quantity > storeItem.availableStock)
+    )
+    {
+      throw new NotFoundException('Insufficient stock.');
+    }
   
     if (cartItem) {
       cartItem.quantity += payload.quantity;
@@ -53,9 +60,7 @@ export class CartService {
       cartItem = this.cartItemRepository.create({
         price: payload.price,
         quantity: payload.quantity,
-        item: storeItem.item,
-        store: storeItem.store,
-        variation: storeItem.itemVariation,
+        storeItem: storeItem,
         cart,
       });
     }
@@ -74,15 +79,11 @@ export class CartService {
     });
   
   if (!userCart) {
-      throw new Error('Cart not found');
+      return [];
     }
   
     const cartItems = await this.cartItemRepository.find({
-      relations: {
-        store: true,
-        item: true,
-        variation: true,
-      },
+      relations: ['storeItem.item'],
       where: { cart: { cart_id: userCart.cart_id } } 
     });
   
@@ -100,5 +101,61 @@ export class CartService {
 
   remove(id: number) {
     return `This action removes a #${id} cart`;
+  }
+
+  async incrementItemQuantity(customerId: number,storeItemId: number) {
+    const cartItem =  await this.cartItemRepository.findOne({
+      relations: ['storeItem'],
+      where: {
+        storeItem: {id: storeItemId},
+        cart: {customer : {id:  customerId}}
+      }
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException(`this cart with store item id ${storeItemId} not found`);
+    }
+
+    if (cartItem.quantity > cartItem.storeItem.availableStock) {
+      throw new NotFoundException('Insufficient stock.');
+    }
+
+    cartItem.quantity += 1;
+
+    return await this.cartItemRepository.save(cartItem);
+  }
+
+  async decrementItemQuantity(customerId: number,storeItemId: number) {
+    const cartItem =  await this.cartItemRepository.findOne({
+      relations: ['storeItem'],
+      where: {
+        storeItem: {id: storeItemId},
+        cart: {customer : {id:  customerId}}
+      }
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException(`this cart with store item id ${storeItemId} not found`);
+    }
+
+    cartItem.quantity -= 1;
+
+    return await this.cartItemRepository.save(cartItem);
+  }
+
+  async removeCartItem(customerId: number,storeItemId: number) {
+    const cartItem =  await this.cartItemRepository.findOne({
+      where: {
+        storeItem: {id: storeItemId},
+        cart: {customer : {id:  customerId}}
+      }
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException(`this cart with store item id ${storeItemId} not found`);
+    }
+
+
+    return await this.cartItemRepository.delete(cartItem.id);
   }
 }

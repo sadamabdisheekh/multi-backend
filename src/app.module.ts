@@ -32,14 +32,15 @@ import { ItemImage } from './item/entities/item-images';
 import { CartModule } from './cart/cart.module';
 import { Cart } from './cart/entities/cart.entity';
 import { CartItem } from './cart/entities/cart-item.entity';
-import { SalesModule } from './sales/sales.module';
-import { Order } from './sales/entities/order.entity';
-import { OrderItem } from './sales/entities/order-item.entity';
-import { Payment } from './sales/entities/payment.entity';
-import { Shipping } from './sales/entities/shipping.entity';
 import { CustomersModule } from './customers/customers.module';
 import { Customer } from './customers/entities/customer.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { OrderModule } from './order/order.module';
+import { Order } from './order/entities/order.entity';
+import { OrderItem } from './order/entities/order-item.entity';
+import { PaymentMethod } from './order/entities/payment-method.entity';
+import { PaymentStatus } from './order/entities/payment-status.entity';
+import { OrderStatus } from './order/entities/order-status.entity';
 
 
 @Module({
@@ -64,7 +65,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       entities: [
         UserEntity,Customer,UserProfile, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         Store,StoreItem,StoreSchedule,ItemTypes,ItemUnit,ItemImage,Brand,Item,Attribute,AttributeValue,
-        ItemVariation,ItemVariationAttribute,Category,Cart,CartItem,Order,OrderItem,Payment,Shipping
+        ItemVariation,ItemVariationAttribute,Category,Cart,CartItem,Order,OrderItem,PaymentMethod,PaymentStatus,OrderStatus
       ],
       synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
       })
@@ -77,9 +78,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     StoresModule,
     ItemModule,
     CartModule,
-    SalesModule,
     CustomersModule,
-  ],
+    OrderModule,
+    ],
   controllers: [AppController],
   providers: [AppService],
   exports: []

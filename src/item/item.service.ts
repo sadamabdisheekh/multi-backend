@@ -135,6 +135,7 @@ constructor(
         itemVariation: variation,
         price: attr.price,
         stock: attr.stock,
+        availableStock: attr.stock,
         store,
       })
     );
@@ -230,6 +231,7 @@ constructor(
     const category = this.categoryRepository.create({
       name: payload.name,
       isActive: payload.isActive,
+      parentId: payload.parent ?? null,
       image: fileName
     })
     return await this.categoryRepository.save(category)
@@ -291,7 +293,8 @@ constructor(
   }
 
   async getItemsByFilter(filterDto: FindItemsByFilterDto) {
-    const { categoryId, brandId } = filterDto;
+    const { categoryId, brandId, attributeValueIds} = filterDto;
+
 
     const categoryChildren = await this.getCategoryHierarchy(categoryId);
 
@@ -302,6 +305,14 @@ constructor(
         category: { id: In(categoryIds) }, 
       },
     };
+
+    if (attributeValueIds && attributeValueIds.length > 0) {
+      whereConditions.itemVariation = {
+        attributes: {
+          attributeValue: {id: In(attributeValueIds)}
+        }
+      }
+    }
   
     if (brandId) {
       whereConditions.item.brand = { id: brandId };
@@ -314,7 +325,37 @@ constructor(
         store: true,
       }
     })
-    return items;
+    return  items;
+  }
+
+    async getItemAttributes(filterDto: FindItemsByFilterDto) {
+    const { categoryId } = filterDto;
+
+    const items = await this.storeItemRepository.find({
+      where: {
+        item: {
+          category: {id: categoryId}
+        }
+      },
+      relations: {
+        itemVariation: {
+          attributes: {
+            attributeValue: true
+          }
+        }
+      }
+    })
+
+    const attributeValueIds = items.flatMap(item =>
+      item.itemVariation?.attributes.map(attr => attr.attributeValue.id) || []
+    );
+
+    const attributes = await this.attributeRepository.find({
+      where: { values: { id: In(attributeValueIds) } },
+      relations: ['values'],
+    });
+
+    return  attributes;
   }
 
   private flattenCategoryIds(categories: Category[], result: number[] = []): number[] {

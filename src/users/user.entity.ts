@@ -1,7 +1,5 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 import { UserProfile } from "./user-profile.entity";
-import { Cart } from "src/cart/entities/cart.entity";
-import { Order } from "src/sales/entities/order.entity";
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -28,8 +26,5 @@ export class UserEntity extends BaseEntity {
     @OneToOne(() => UserProfile, profile => profile.user)
     profile: UserProfile;
 
-
-    @OneToMany(() => Order, order => order.user)
-    orders: Order[];
 
 }
