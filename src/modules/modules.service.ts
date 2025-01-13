@@ -66,7 +66,7 @@ export class ModulesService {
 
     module.module_name = payload.module_name;
     module.description = payload.description;
-    module.image = newFile ? newFile.filename : module.image;
+    module.image = newFile ? newFile : module.image;
     module.status = payload.status;
 
     return await this.moduleRepository.update(module.id, module);

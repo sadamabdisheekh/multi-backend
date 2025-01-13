@@ -19,6 +19,9 @@ export class Customer {
   @Column()
   password: string;
 
+  @Column({ unique: true , nullable: true})
+  email: string;
+
   @Column({ default: true })
   isActive: boolean;
 

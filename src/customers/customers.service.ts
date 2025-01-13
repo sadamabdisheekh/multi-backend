@@ -19,8 +19,18 @@ export class CustomersService {
     private customerRepository: Repository<Customer>,
   ) {}
 
-  create(payload: CreateCustomerDto) {
-    return 'This action adds a new customer';
+  async create(payload: CreateCustomerDto): Promise<any> {
+    
+    const createdCustomer = this.customerRepository.create({
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      mobile: payload.mobile,
+      password: crypto.createHmac('sha256', payload.password).digest('hex'),
+    });
+
+    const customer = await this.customerRepository.save(createdCustomer);
+    const {password,...result} = customer as any;
+    return result;
   }
 
   async signIn(payload: LoginDto): Promise<any> {

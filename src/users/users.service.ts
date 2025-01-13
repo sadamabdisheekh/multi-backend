@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from './user.entity';
 import * as crypto from 'crypto';
 import { UserProfile } from './user-profile.entity';
+import { Store } from 'src/stores/entities/store.entity';
 
 @Injectable()
 export class UsersService {
@@ -12,11 +13,13 @@ export class UsersService {
     @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
     @InjectRepository(UserProfile)
     private readonly userProfileRepository: Repository<UserProfile>,
+    @InjectRepository(Store)
+    private readonly storeRepository: Repository<Store>,
   ) {
   }
 
   async create(payload: UserDto) {
-    const { firstName, middleName, lastName, mobile, password, storeId } = payload;
+    const { firstName, middleName, lastName, mobile, storeId } = payload;
   
     // Check if the mobile number already exists
     const existingUser = await this.userRepository.findOne({ where: { mobile } });
@@ -25,7 +28,7 @@ export class UsersService {
     }
   
     // Hash the password
-    const hashedPassword = crypto.createHmac('sha256', password).digest('hex');
+    const hashedPassword = crypto.createHmac('sha256', payload.password).digest('hex');
   
     // Create and save the user
     const user = this.userRepository.create({
@@ -39,16 +42,21 @@ export class UsersService {
     });
   
     const savedUser = await this.userRepository.save(user);
+
+    const store = await this.storeRepository.findOne({
+      where: { id: storeId },
+    });
   
     // Create and save the user profile
     const userProfile = this.userProfileRepository.create({
       user: savedUser,
-      store: { id: storeId },
+      store: store ? store : null,
     });
   
     await this.userProfileRepository.save(userProfile);
   
-    return savedUser;
+    const {password,...result} = savedUser;
+    return result;
   }
   
 
