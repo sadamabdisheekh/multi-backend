@@ -116,7 +116,7 @@ export class CartService {
       throw new NotFoundException(`this cart with store item id ${storeItemId} not found`);
     }
 
-    if (cartItem.quantity > cartItem.storeItem.availableStock) {
+    if (cartItem.quantity >= cartItem.storeItem.availableStock) {
       throw new NotFoundException('Insufficient stock.');
     }
 
