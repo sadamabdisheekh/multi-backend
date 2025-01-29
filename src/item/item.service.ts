@@ -17,6 +17,7 @@ import { UploadService } from 'common/UploadService';
 import { FilePaths } from 'common/enum';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { ItemImage } from './entities/item-images';
+import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Injectable()
 export class ItemService {
@@ -42,6 +43,8 @@ constructor(
   private readonly uploadService: UploadService, 
   @InjectRepository(ItemImage)
   private readonly itemImagesRepository: Repository<ItemImage>,
+  @InjectRepository(StoreItemVariation)
+  private readonly storeItemVariationRepository: Repository<StoreItemVariation>,
 
 ){}
   async createItem(payload: CreateItemDto,file:Express.Multer.File) {
@@ -104,7 +107,7 @@ constructor(
   
   // Helper function to find or create a variation, returning whether it was new
   private async findOrCreateVariation(sku: string, item: Item) {
-    const existingVariation = await this.itemVariationRepository.findOneBy({ sku });
+    const existingVariation = await this.itemVariationRepository.findOneBy({ sku,item });
     if (existingVariation) {
       return { variation: existingVariation, isNew: false };
     }
@@ -129,16 +132,33 @@ constructor(
   
   // Helper function to create store item
   private async createStoreItem(attr: { price: number; stock: number }, item: Item, store: Store, variation: ItemVariation | null = null) {
-    await this.storeItemRepository.save(
-      this.storeItemRepository.create({
+    let storeItem = await this.storeItemRepository.findOne({
+      where: { item, store },
+    });
+
+    if (!storeItem) {
+      storeItem = this.storeItemRepository.create({
         item,
-        itemVariation: variation,
-        price: attr.price,
-        stock: attr.stock,
-        availableStock: attr.stock,
         store,
-      })
-    );
+        price: item.itemType.item_type_id === 1 ? attr.price : null,
+        stock: item.itemType.item_type_id === 1 ? attr.stock : null,
+        availableStock: item.itemType.item_type_id === 1 ? attr.stock : null,
+      });
+  
+      storeItem = await this.storeItemRepository.save(storeItem);
+    }
+
+    if (item.itemType.item_type_id === 2 && variation) {
+      await this.storeItemVariationRepository.save(
+        this.storeItemVariationRepository.create({
+          storeItem,
+          price: attr.price,
+          itemVariation: variation,
+          stock: attr.stock,
+          availableStock: attr.stock,
+        })
+      );
+    }
   }
   
   

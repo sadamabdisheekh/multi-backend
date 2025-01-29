@@ -41,6 +41,7 @@ import { OrderItem } from './order/entities/order-item.entity';
 import { PaymentMethod } from './order/entities/payment-method.entity';
 import { PaymentStatus } from './order/entities/payment-status.entity';
 import { OrderStatus } from './order/entities/order-status.entity';
+import { StoreItemVariation } from './stores/entities/store-item-variation.entity';
 
 
 @Module({
@@ -65,7 +66,8 @@ import { OrderStatus } from './order/entities/order-status.entity';
       entities: [
         UserEntity,Customer,UserProfile, ModuleEntity, ZoneEntity, ModuleZoneEntity,
         Store,StoreItem,StoreSchedule,ItemTypes,ItemUnit,ItemImage,Brand,Item,Attribute,AttributeValue,
-        ItemVariation,ItemVariationAttribute,Category,Cart,CartItem,Order,OrderItem,PaymentMethod,PaymentStatus,OrderStatus
+        ItemVariation,ItemVariationAttribute,Category,Cart,CartItem,Order,OrderItem,PaymentMethod,PaymentStatus,
+        OrderStatus,StoreItemVariation
       ],
       synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
       })
