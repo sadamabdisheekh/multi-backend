@@ -7,7 +7,7 @@ export class StoreItemVariation {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => StoreItem, storeItem => storeItem.storeItemPrice)
+    @ManyToOne(() => StoreItem, storeItem => storeItem.storeItemVariation)
     storeItem: StoreItem;
 
     @ManyToOne(() => ItemVariation, variation => variation.storeItemPrice, { nullable: true })

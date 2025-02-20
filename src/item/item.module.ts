@@ -13,13 +13,13 @@ import { ItemVariationAttribute } from './entities/item-variation-attribute.enti
 import { Attribute } from './entities/attribute.entity';
 import { UploadService } from 'common/UploadService';
 import { ItemImage } from './entities/item-images';
-import { StoreItemPrice } from './entities/item-store-price.entity';
+import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
     Category,Store,StoreItem,ItemTypes,ItemImage,
     Item,Brand,ItemVariation,ItemVariationAttribute,
-    Attribute,StoreItemPrice
+    Attribute,StoreItemVariation
   ])],
   controllers: [ItemController],
   providers: [ItemService,UploadService],

@@ -40,7 +40,7 @@ export class StoreItem {
     updatedAt: Date;
 
     @OneToMany(() => StoreItemVariation, storeItemPrice => storeItemPrice.storeItem)
-    storeItemPrice: StoreItemVariation[];
+    storeItemVariation: StoreItemVariation[];
 
     @OneToMany(() => CartItem, (cartItem) => cartItem.storeItem)
     cartItem: CartItem[];
