@@ -4,7 +4,6 @@ import { Item } from 'src/item/entities/item.entity';
 import { ItemVariation } from 'src/item/entities/item-variation.entity';
 import { CartItem } from 'src/cart/entities/cart-item.entity';
 import { OrderItem } from 'src/order/entities/order-item.entity';
-import { StoreItemVariation } from './store-item-variation.entity';
 
 
 @Entity()
@@ -38,9 +37,6 @@ export class StoreItem {
 
     @UpdateDateColumn({ type: 'timestamp' })
     updatedAt: Date;
-
-    @OneToMany(() => StoreItemVariation, storeItemPrice => storeItemPrice.storeItem)
-    storeItemVariation: StoreItemVariation[];
 
     @OneToMany(() => CartItem, (cartItem) => cartItem.storeItem)
     cartItem: CartItem[];

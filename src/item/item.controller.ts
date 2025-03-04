@@ -165,9 +165,4 @@ export class ItemController {
   async getItemDetailsForMobile(@Query('storeItemId') storeItemId: number) {
     return this.itemService.getItemDetailsForMobile(storeItemId);
   }
-
-  @Get('getItemDetailsForMobile1')
-  async getItemDetailsForMobile1(@Query('storeItemId') storeItemId: number) {
-    return this.itemService.getItemDetailsForMobile22(storeItemId);
-  }
 }

@@ -17,7 +17,6 @@ import { UploadService } from 'common/UploadService';
 import { FilePaths } from 'common/enum';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { ItemImage } from './entities/item-images';
-import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Injectable()
 export class ItemService {
@@ -42,9 +41,7 @@ constructor(
   private readonly attributeRepository: Repository<Attribute>,
   private readonly uploadService: UploadService, 
   @InjectRepository(ItemImage)
-  private readonly itemImagesRepository: Repository<ItemImage>,
-  @InjectRepository(StoreItemVariation)
-  private readonly storeItemVariationRepository: Repository<StoreItemVariation>,
+  private readonly itemImagesRepository: Repository<ItemImage>
 
 ){}
   async createItem(payload: CreateItemDto,file:Express.Multer.File) {
@@ -135,30 +132,16 @@ constructor(
     let storeItem = await this.storeItemRepository.findOne({
       where: { item, store },
     });
-
-    if (!storeItem) {
-      storeItem = this.storeItemRepository.create({
-        item,
-        store,
-        price: item.itemType.item_type_id === 1 ? attr.price : null,
-        stock: item.itemType.item_type_id === 1 ? attr.stock : null,
-        availableStock: item.itemType.item_type_id === 1 ? attr.stock : null,
-      });
+    storeItem = this.storeItemRepository.create({
+      item,
+      store,
+      price: item.itemType.item_type_id === 1 ? attr.price : null,
+      stock: item.itemType.item_type_id === 1 ? attr.stock : null,
+      availableStock: item.itemType.item_type_id === 1 ? attr.stock : null,
+    });
   
-      storeItem = await this.storeItemRepository.save(storeItem);
-    }
+    return await this.storeItemRepository.save(storeItem);
 
-    if (item.itemType.item_type_id === 2 && variation) {
-      await this.storeItemVariationRepository.save(
-        this.storeItemVariationRepository.create({
-          storeItem,
-          price: attr.price,
-          itemVariation: variation,
-          stock: attr.stock,
-          availableStock: attr.stock,
-        })
-      );
-    }
   }
   
   
@@ -475,204 +458,5 @@ constructor(
       throw new InternalServerErrorException('Unable to fetch item details. Please try again later.');
     }
   }
-
-
-  async getItemDetailsForMobile11(itemStoreId: number) {
-    try {
-      const itemStore = await this.storeItemRepository.findOne({
-        relations: {
-          store: true,
-          item: {
-            images: true,
-            itemUnit: true
-          },
-          storeItemVariation: {
-            itemVariation: {
-              attributes: {
-                
-                attributeValue: {
-                  attribute: true
-                },
-              },
-            }
-          }
-        },
-        where: { id: itemStoreId },
-      });
-  
-      if (!itemStore) {
-        throw new Error(`ItemStore with ID ${itemStoreId} not found.`);
-      }
-
-      const attributesMap = new Map<string, Set<string>>();
-
-      const variations = itemStore.storeItemVariation.map((variation) => {
-        const variationDetails: any = {};
-
-        const attributes = variation.itemVariation.attributes.forEach((vav) => {
-          const attributeName = vav.attributeValue.attribute.name;
-          const attributeValue = vav.attributeValue.name;
-          if (!attributesMap.has(attributeName)) {
-            attributesMap.set(attributeName, new Set());
-          }
-          attributesMap.get(attributeName).add(attributeValue);
-      
-          // Add the attribute value to the variation details
-          variationDetails[attributeName.toLowerCase()] = attributeValue;
-        });
-        // variationDetails.attributes = variation.itemVariation.attributes;
-
-        variationDetails.price = variation.price;
-        variationDetails.stock = variation.stock;
-        variationDetails.availableStock = variation.availableStock;
-        return variationDetails;
-
-      });
-
-      return variations;
-  
-
-    } catch (error) {
-      console.error(`Error fetching item details: ${error.message}`);
-      throw new InternalServerErrorException('Unable to fetch item details. Please try again later.');
-    }
-  }
-
-  // async getItemDetailsForMobile22(itemStoreId: number) {
-  //   // Fetch the item store with necessary relations
-  //   const itemStore = await this.storeItemRepository.findOne({
-  //     relations: {
-  //       store: true,
-  //       item: {
-  //         itemType: true,
-  //         images: true,
-  //         itemUnit: true,
-  //       },
-  //     },
-  //     where: { id: itemStoreId },
-  //   });
-  
-  //   if (!itemStore) {
-  //     throw new Error(`ItemStore with ID ${itemStoreId} not found.`);
-  //   }
-
-  //   if (itemStore.item.itemType.item_type_id !== 2) {
-  //     return { itemStore,attributes: null, variations: null };
-  //   }
-  
-
-  //     const itemVariations = await this.storeItemVariationRepository.find({
-  //       where: { storeItem: { id: itemStoreId } },
-  //       relations: ['itemVariation.attributes.attributeValue.attribute'],
-  //     });
-  
-  //     const attributesMap = new Map<string, Set<string>>();
-  
-  //     const variations = itemVariations
-  //       .filter((variation) => variation.itemVariation.attributes.length > 0)
-  //       .map((variation) => {
-  //         const variationDetails: any = {};
-  
-  //         variation.itemVariation.attributes.forEach((vav) => {
-  //           const attributeName = vav.attributeValue.attribute.name;
-  //           const attributeValue = vav.attributeValue.name;
-  
-  //           if (!attributesMap.has(attributeName)) {
-  //             attributesMap.set(attributeName, new Set());
-  //           }
-  //           attributesMap.get(attributeName).add(attributeValue);
-  
-  //           variationDetails[attributeName] = attributeValue;
-  //         });
-  
-  //         variationDetails.price = variation.price;
-  //         variationDetails.stock = variation.stock;
-  //         variationDetails.variationId = variation.id; 
-  
-  //         return variationDetails;
-  //       });
-  
-  //     const attributes = Array.from(attributesMap).map(([attributeName, values]) => ({
-  //       attributeName,
-  //       values: Array.from(values),
-  //     }));
-  
-  //   return {
-  //     itemStore,
-  //     attributes, 
-  //     variations, 
-  //   };
-  // }
-
-  async getItemDetailsForMobile22(itemStoreId: number) {
-    // Fetch the item store with necessary relations
-    const itemStore = await this.storeItemRepository.findOne({
-      relations: {
-        store: true,
-        item: {
-          itemType: true,
-          images: true,
-          itemUnit: true,
-        },
-      },
-      where: { id: itemStoreId },
-    });
-  
-    if (!itemStore) {
-      throw new Error(`ItemStore with ID ${itemStoreId} not found.`);
-    }
-
-    if (itemStore.item.itemType.item_type_id !== 2) {
-      return { itemStore,attributes: null, variations: null };
-    }
-  
-      const itemVariations = await this.storeItemVariationRepository.find({
-        where: { storeItem: { id: itemStoreId } },
-        relations: ['itemVariation.attributes.attributeValue.attribute'],
-      });
-  
-      const attributesMap = new Map<string, { values: Set<{ id: number; name: string }>; id: number }>();
-  
-      const variations = itemVariations
-        .filter((variation) => variation.itemVariation.attributes.length > 0)
-        .map((variation) => {
-          const variationDetails: any = {};
-  
-          variation.itemVariation.attributes.forEach((vav) => {
-            const attributeId = vav.attributeValue.attribute.id;
-            const attributeName = vav.attributeValue.attribute.name;
-            const attributeValueId = vav.attributeValue.id;
-            const attributeValue = vav.attributeValue.name;
-  
-            if (!attributesMap.has(attributeName)) {
-              attributesMap.set(attributeName, { values: new Set(), id: attributeId });
-            }
-            attributesMap.get(attributeName).values.add({ id: attributeValueId, name: attributeValue });
-  
-            variationDetails[attributeName] = {
-              attributeId,
-              attributeValueId,
-              attributeValue,
-            };
-          });
-  
-          variationDetails.price = variation.price;
-          variationDetails.stock = variation.stock;
-          variationDetails.variationId = variation.id;
-  
-          return variationDetails;
-        });
-  
-      const attributes = Array.from(attributesMap).map(([attributeName, { values, id }]) => ({
-        attributeId: id,
-        attributeName,
-        values: Array.from(values),
-      }));
-  
-    return {
-      attributes, 
-      variations, 
-    };
-  }
-  
+    
 }
