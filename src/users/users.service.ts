@@ -6,7 +6,10 @@ import { UserEntity } from './user.entity';
 import * as crypto from 'crypto';
 import { UserProfile } from './user-profile.entity';
 import { Store } from 'src/stores/entities/store.entity';
-
+import { UserRoles } from 'src/access-control/entities/user_roles.entity';
+import { UserPermission } from 'src/access-control/entities/user-permission.entity';
+import { Permission } from 'src/access-control/entities/permission.entity';
+import { RolePermission } from 'src/access-control/entities/role-permission.entity';
 @Injectable()
 export class UsersService {
   constructor(
@@ -15,6 +18,14 @@ export class UsersService {
     private readonly userProfileRepository: Repository<UserProfile>,
     @InjectRepository(Store)
     private readonly storeRepository: Repository<Store>,
+    @InjectRepository(UserRoles)
+    private readonly userRoleRepository: Repository<UserRoles>,
+    @InjectRepository(UserPermission)
+    private readonly userPermissionRepository: Repository<UserPermission>,
+    @InjectRepository(Permission)
+    private readonly permissionRepository: Repository<Permission>,
+    @InjectRepository(RolePermission)
+    private readonly rolePermissionRepository: Repository<RolePermission>,
   ) {
   }
 
@@ -84,18 +95,53 @@ export class UsersService {
   async findByMobileAndPassword(mobile: string, password: string): Promise<any> {
     const hashedPassword = crypto.createHmac('sha256', password).digest('hex');
   
-    const user = await this.userRepository.findOne({ where: { mobile, password: hashedPassword } });
+    const user = await this.userRepository.findOne({ 
+      where: { mobile, password: hashedPassword } 
+    });
     if (!user) {
       throw new NotFoundException('Invalid mobile number or password.');
     }
+
+    const userRole = await this.userRoleRepository.findOne({ 
+      relations: ['role'],
+      where: { user: {userId: user.userId} } 
+    });
+
+    let userPermissions = [];
+
+    if(userRole && userRole.role) {
+      userPermissions = await this.rolePermissionRepository.find({
+        relations: ['permission'],
+        where: { role: {roleId: userRole.role.roleId} }
+      });
+    }else{
+      userPermissions = await this.userPermissionRepository.find({
+        relations: ['permission'],
+        where: { user: {userId: user.userId} }
+      });
+    }
+
+    const permissions = userPermissions.map(permission => permission.permission.permission);
+
+    user['permissions'] = permissions;
+
   
     const userProfile = await this.userProfileRepository.findOne({
       where: { user: {userId: user.userId} },
       relations: ['store'], 
     });
+
+    if(!userProfile) {
+      throw new NotFoundException('User profile not found.');
+    }
   
     if (userProfile) {
       user['store'] = userProfile.store;
+    }
+
+    if(userRole) {
+      user['roleId'] = userRole.role.roleId;
+      user['role'] = userRole.role.roleName;
     }
   
     return user;

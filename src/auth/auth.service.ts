@@ -20,9 +20,7 @@ export class AuthService {
   ): Promise<any> {
 
     const user = await this.usersService.findByMobileAndPassword(payload.mobile, payload.password);
-    
     const { password, ...result } = user as any;
-    result.role = 'All';
     result.token = this.jwtService.sign(result,{
       secret: this.configService.get<string>('USER_JWT_SECRET'),
       expiresIn: this.configService.get<string>('USER_TOKEN_EXPIRY'), // Users' tokens expire

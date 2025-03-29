@@ -1,5 +1,7 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 import { UserProfile } from "./user-profile.entity";
+import { UserRoles } from "src/access-control/entities/user_roles.entity";
+import { UserPermission } from "src/access-control/entities/user-permission.entity";
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -25,6 +27,12 @@ export class UserEntity extends BaseEntity {
 
     @OneToOne(() => UserProfile, profile => profile.user)
     profile: UserProfile;
+
+    @OneToMany(() => UserRoles, userRole => userRole.user)
+    userRole: UserRoles
+
+    @OneToMany(() => UserPermission, userPermission => userPermission.user)
+    permissions: UserPermission[];
 
 
 }

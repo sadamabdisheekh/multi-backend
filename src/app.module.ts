@@ -14,6 +14,7 @@ import { CartModule } from './cart/cart.module';
 import { CustomersModule } from './customers/customers.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { OrderModule } from './order/order.module';
+import { AccessControlModule } from './access-control/access-control.module';
 
 @Module({
   imports: [
@@ -30,13 +31,14 @@ import { OrderModule } from './order/order.module';
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
         host: configService.get<string>('DB_HOST'),
-        port: parseInt(configService.get<string>('DB_PORT')),
+        port: +configService.get<string>('DB_PORT'), // Using unary plus for conversion
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
+        // entities: [__dirname + '/**/*.entity{.ts,.js}'],
         autoLoadEntities: true,
         synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
-      })
+      }),
     }),
     UsersModule,
     AuthModule,
@@ -48,9 +50,10 @@ import { OrderModule } from './order/order.module';
     CartModule,
     CustomersModule,
     OrderModule,
-    ],
+    AccessControlModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
-  exports: []
+  exports: [],
 })
-export class AppModule { }
+export class AppModule {}
