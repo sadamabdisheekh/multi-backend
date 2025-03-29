@@ -2,16 +2,16 @@ import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne,
 import {UserEntity} from "./user.entity";
 import { Store } from 'src/stores/entities/store.entity';
 
-@Entity('user_profiles')
-export class UserProfile {
+@Entity('user_stores')
+export class UserStore {
     @PrimaryGeneratedColumn()
-    userProfileId: number;
+    userStoreId: number;
 
-    @ManyToOne(() => Store, store => store.profile)
+    @ManyToOne(() => Store, store => store.userStore)
     @JoinColumn({name: 'storeId'}) // Specify the foreign key column
     store: Store;
 
-    @OneToOne(() => UserEntity, user => user.profile)
+    @OneToOne(() => UserEntity, user => user.userStore)
     @JoinColumn({name: 'userId'}) // Specify the foreign key column
     user: UserEntity;
 

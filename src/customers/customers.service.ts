@@ -1,13 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { LoginDto } from 'src/auth/dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Customer } from './entities/customer.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
+import { CustomerUser } from './entities/customer-users.entity';
+import { UserEntity } from 'src/users/user.entity';
 
 
 @Injectable()
@@ -17,44 +18,41 @@ export class CustomersService {
     private readonly configService: ConfigService,
     @InjectRepository(Customer) 
     private customerRepository: Repository<Customer>,
+    @InjectRepository(CustomerUser)
+    private customerUserRepository: Repository<CustomerUser>,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
   ) {}
 
   async create(payload: CreateCustomerDto): Promise<any> {
     
     const createdCustomer = this.customerRepository.create({
       firstName: payload.firstName,
+      middleName: payload.middleName,
       lastName: payload.lastName,
       mobile: payload.mobile,
-      password: crypto.createHmac('sha256', payload.password).digest('hex'),
+      email: payload.email,
     });
 
-    const customer = await this.customerRepository.save(createdCustomer);
-    const {password,...result} = customer as any;
-    return result;
-  }
-
-  async signIn(payload: LoginDto): Promise<any> {
     const hashedPassword = crypto.createHmac('sha256', payload.password).digest('hex');
 
-    const customer =  await this.customerRepository.findOne({
-      where: {
-        mobile: payload.mobile,
-        password: hashedPassword
-      }
-    })
-
-    if (!customer) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    const createUser = this.userRepository.create({
+      firstName: payload.firstName,
+      middleName: payload.middleName,
+      lastName: payload.lastName,
+      username: payload.email,
+      password: hashedPassword,
+    });
+    const customer = await this.customerRepository.save(createdCustomer);
+    const user = await this.userRepository.save(createUser);
+    const customerUser = this.customerUserRepository.create({
+      customerId: customer.id,
+      userId: user.userId,
+    });
+    await this.customerUserRepository.save(customerUser);
 
     const {password,...result} = customer as any;
-    result.token = this.jwtService.sign(result,{
-      secret: this.configService.get<string>('CUSTOMER_JWT_SECRET'),
-      expiresIn: this.configService.get<string>('CUSTOMER_TOKEN_EXPIRY'),
-    });
-
     return result;
-
   }
 
   async findAll() {

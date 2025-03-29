@@ -2,8 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { LoginDto } from 'src/auth/dto/login.dto';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('customers')
 export class CustomersController {
@@ -14,14 +13,7 @@ export class CustomersController {
     return this.customersService.create(createCustomerDto);
   }
 
-  @Post('/login')
-  async loginWithPhoneNumberAndPassword(@Body() payload: LoginDto): Promise<any> {
-
-    return await this.customersService.signIn(payload);
-  }
-
-
-  @UseGuards(UserAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/all')
   findAll() {
     return this.customersService.findAll();

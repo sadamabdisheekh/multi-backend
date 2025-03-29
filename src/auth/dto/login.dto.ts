@@ -1,8 +1,12 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class LoginDto {
     @IsNotEmpty()
-    mobile: string;
+    username: string;
+
     @IsNotEmpty()
     password: any;
+
+    @IsOptional()
+    isCustomerLogin: boolean;
 }

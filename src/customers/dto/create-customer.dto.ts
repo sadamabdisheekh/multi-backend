@@ -6,6 +6,11 @@ export class CreateCustomerDto {
   @Length(2, 50, { message: 'First name must be between 2 and 50 characters' })
   firstName: string;
 
+  @IsOptional()
+  @IsString({ message: 'Middle name must be a string' })
+  @Length(2, 50, { message: 'Middle name must be between 2 and 50 characters' })
+  middleName: string;
+
   @IsNotEmpty({ message: 'Last name is required' })
   @IsString({ message: 'Last name must be a string' })
   @Length(2, 50, { message: 'Last name must be between 2 and 50 characters' })

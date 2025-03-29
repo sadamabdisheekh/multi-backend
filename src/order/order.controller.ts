@@ -1,15 +1,15 @@
 import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 
-import { CustomerAuthGuard } from 'src/auth/guards/customer-auth.guard';
-import { UserAuthGuard } from 'src/auth/guards/user-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { SearchOrdersDto } from './dto/search_order.Dto';
+
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @UseGuards(CustomerAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('/createorder')
   async create(
     @Req() req:any,
@@ -25,13 +25,13 @@ export class OrderController {
     return await this.orderService.findPaymentMethods()
   }
 
-  @UseGuards(UserAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/paymentstatuses')
   async findPaymentStatuses() {
     return await this.orderService.findPaymentStatuses();
   }
 
-  @UseGuards(UserAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/orderstatuses')
   async findOrderStatuses() {
     return await this.orderService.findOrderStatuses();

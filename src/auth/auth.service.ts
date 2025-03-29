@@ -3,6 +3,9 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
+import { UserEntity } from 'src/users/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 
 @Injectable()
@@ -10,7 +13,8 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) { }
 
 
@@ -19,11 +23,11 @@ export class AuthService {
     payload: LoginDto
   ): Promise<any> {
 
-    const user = await this.usersService.findByMobileAndPassword(payload.mobile, payload.password);
+    const user = await this.usersService.findByMobileAndPassword(payload);
     const { password, ...result } = user as any;
     result.token = this.jwtService.sign(result,{
-      secret: this.configService.get<string>('USER_JWT_SECRET'),
-      expiresIn: this.configService.get<string>('USER_TOKEN_EXPIRY'), // Users' tokens expire
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRY, // Users' tokens expire
     });
     
     return result;

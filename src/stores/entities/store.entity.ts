@@ -2,7 +2,7 @@ import { ZoneEntity } from 'src/zones/zone.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { StoreSchedule } from './store-schedule.entity';
 import { StoreItem } from './store-item.entity';
-import { UserProfile } from 'src/users/user-profile.entity';
+import {  UserStore } from 'src/users/user-store.entity';
 
 @Entity('stores')
 export class Store {
@@ -56,7 +56,7 @@ export class Store {
   @OneToMany(() => StoreItem, storeItem => storeItem.store)
   storeItems: StoreItem[];
 
-  @OneToMany(() => UserProfile, profile => profile.store)
-  profile: UserProfile;
+  @OneToMany(() => UserStore, userStore => userStore.store)
+  userStore: UserStore;
 
 }

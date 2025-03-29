@@ -1,6 +1,7 @@
 import { Cart } from 'src/cart/entities/cart.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { CustomerUser } from './customer-users.entity';
 
 @Entity('customers')
 export class Customer {
@@ -10,14 +11,16 @@ export class Customer {
   @Column()
   firstName: string;
 
+  @Column({ nullable: true })
+  middleName: string;
+
   @Column()
   lastName: string;
+  
 
-  @Column()
+  @Column({unique: true})
   mobile: string
 
-  @Column()
-  password: string;
 
   @Column({ unique: true , nullable: true})
   email: string;
@@ -36,5 +39,8 @@ export class Customer {
 
   @OneToMany(() => Order, order => order.customer)
   orders: Order[];
+
+  @OneToMany(() => CustomerUser, customerUser => customerUser.customer)
+  users: CustomerUser[];
   
 }

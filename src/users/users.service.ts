@@ -4,18 +4,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './user.entity';
 import * as crypto from 'crypto';
-import { UserProfile } from './user-profile.entity';
+import { UserStore } from './user-store.entity';
 import { Store } from 'src/stores/entities/store.entity';
 import { UserRoles } from 'src/access-control/entities/user_roles.entity';
 import { UserPermission } from 'src/access-control/entities/user-permission.entity';
 import { Permission } from 'src/access-control/entities/permission.entity';
 import { RolePermission } from 'src/access-control/entities/role-permission.entity';
+import { LoginDto } from 'src/auth/dto/login.dto';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
-    @InjectRepository(UserProfile)
-    private readonly userProfileRepository: Repository<UserProfile>,
+    @InjectRepository(UserStore)
+    private readonly userStoreRepository: Repository<UserStore>,
     @InjectRepository(Store)
     private readonly storeRepository: Repository<Store>,
     @InjectRepository(UserRoles)
@@ -59,12 +60,12 @@ export class UsersService {
     });
   
     // Create and save the user profile
-    const userProfile = this.userProfileRepository.create({
+    const userStore = this.userStoreRepository.create({
       user: savedUser,
       store: store ? store : null,
     });
   
-    await this.userProfileRepository.save(userProfile);
+    await this.userStoreRepository.save(userStore);
   
     const {password,...result} = savedUser;
     return result;
@@ -92,11 +93,15 @@ export class UsersService {
   }
 
 
-  async findByMobileAndPassword(mobile: string, password: string): Promise<any> {
+  async findByMobileAndPassword(payload: LoginDto): Promise<any> {
+    const {username, password, isCustomerLogin} = payload;
     const hashedPassword = crypto.createHmac('sha256', password).digest('hex');
   
     const user = await this.userRepository.findOne({ 
-      where: { mobile, password: hashedPassword } 
+      relations: {
+        customerUser: true
+      },
+      where: { username, password: hashedPassword } 
     });
     if (!user) {
       throw new NotFoundException('Invalid mobile number or password.');
@@ -126,17 +131,17 @@ export class UsersService {
     user['permissions'] = permissions;
 
   
-    const userProfile = await this.userProfileRepository.findOne({
+    const userStore = await this.userStoreRepository.findOne({
       where: { user: {userId: user.userId} },
       relations: ['store'], 
     });
 
-    if(!userProfile) {
-      throw new NotFoundException('User profile not found.');
+    if(!userStore) {
+      throw new NotFoundException('User store not found.');
     }
   
-    if (userProfile) {
-      user['store'] = userProfile.store;
+    if (userStore) {
+      user['store'] = userStore.store;
     }
 
     if(userRole) {

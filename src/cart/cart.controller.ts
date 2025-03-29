@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, 
 import { CartService } from './cart.service';
 import { CartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { CustomerAuthGuard } from 'src/auth/guards/customer-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('cart')
 export class CartController {
@@ -13,7 +13,7 @@ export class CartController {
     return await this.cartService.create(createCartDto);
   }
   
-  @UseGuards(CustomerAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/getcartitems')
   findAll(@Request() req:any) {
     const customer = req.user;
@@ -39,21 +39,21 @@ export class CartController {
     return this.cartService.remove(+id);
   }
 
-  @UseGuards(CustomerAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/incrementquantity/:storeItemId')
   async incrementItemQuantity(@Req() req:any,@Param('storeItemId') storeItemId: number) {
     let customeId = req.user.id;
     return await this.cartService.incrementItemQuantity(customeId,storeItemId)
   }
 
-  @UseGuards(CustomerAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/decrementquantity/:storeItemId')
   async decrementItemQuantity(@Req() req:any,@Param('storeItemId') storeItemId: number) {
     let customeId = req.user.id;
     return await this.cartService.decrementItemQuantity(customeId,storeItemId)
   }
 
-  @UseGuards(CustomerAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/removecartitem/:storeItemId')
   async removeCartItem(@Req() req:any,@Param('storeItemId') storeItemId: number) {
     let customeId = req.user.id;
