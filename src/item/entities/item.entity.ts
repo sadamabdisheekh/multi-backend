@@ -5,7 +5,7 @@ import { ItemVariation } from './item-variation.entity';
 import { Category } from './category.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { ItemUnit } from './item-unit.entity';
-import { ItemImage } from './item-images';
+import { ItemImage } from './item-images.entity';
 
 @Entity()
 export class Item {

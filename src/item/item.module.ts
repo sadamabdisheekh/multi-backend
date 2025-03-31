@@ -12,7 +12,7 @@ import { ItemVariation } from './entities/item-variation.entity';
 import { ItemVariationAttribute } from './entities/item-variation-attribute.entity';
 import { Attribute } from './entities/attribute.entity';
 import { UploadService } from 'common/UploadService';
-import { ItemImage } from './entities/item-images';
+import { ItemImage } from './entities/item-images.entity';
 import { AttributeValue } from './entities/attribute-value.entity';
 import { ItemUnit } from './entities/item-unit.entity';
 

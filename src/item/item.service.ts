@@ -16,7 +16,7 @@ import { UpdateStoreItemDto } from './dto/update-store-item.dto';
 import { UploadService } from 'common/UploadService';
 import { FilePaths } from 'common/enum';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
-import { ItemImage } from './entities/item-images';
+import { ItemImage } from './entities/item-images.entity';
 
 @Injectable()
 export class ItemService {
