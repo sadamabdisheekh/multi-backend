@@ -1,4 +1,4 @@
-import { Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { UserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,11 +6,7 @@ import { UserEntity } from './user.entity';
 import * as crypto from 'crypto';
 import { UserStore } from './user-store.entity';
 import { Store } from 'src/stores/entities/store.entity';
-import { UserRoles } from 'src/access-control/entities/user_roles.entity';
-import { UserPermission } from 'src/access-control/entities/user-permission.entity';
-import { Permission } from 'src/access-control/entities/permission.entity';
-import { RolePermission } from 'src/access-control/entities/role-permission.entity';
-import { LoginDto } from 'src/auth/dto/login.dto';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -19,14 +15,6 @@ export class UsersService {
     private readonly userStoreRepository: Repository<UserStore>,
     @InjectRepository(Store)
     private readonly storeRepository: Repository<Store>,
-    @InjectRepository(UserRoles)
-    private readonly userRoleRepository: Repository<UserRoles>,
-    @InjectRepository(UserPermission)
-    private readonly userPermissionRepository: Repository<UserPermission>,
-    @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
-    @InjectRepository(RolePermission)
-    private readonly rolePermissionRepository: Repository<RolePermission>,
   ) {
   }
 
@@ -70,88 +58,13 @@ export class UsersService {
     const {password,...result} = savedUser;
     return result;
   }
-  
 
-  async getByMobileAndPass(
-    mobileNumber: string,
-    password: string,
-  ): Promise<UserEntity> {
-    const hashedPassword = crypto.createHmac('sha256', password).digest('hex');
-
-    return this.userRepository.findOne({
-      where: {
-        mobile: mobileNumber,
-        password: hashedPassword,
-      },
-    });
-  }
 
   async findAll() {
     return await this.userRepository.find({
       relations: ['profile.store']
     });
   }
-
-
-  async findByMobileAndPassword(payload: LoginDto): Promise<any> {
-    const {username, password, isCustomerLogin} = payload;
-    const hashedPassword = crypto.createHmac('sha256', password).digest('hex');
-  
-    const user = await this.userRepository.findOne({ 
-      relations: {
-        customerUser: true
-      },
-      where: { username, password: hashedPassword } 
-    });
-    if (!user) {
-      throw new NotFoundException('Invalid mobile number or password.');
-    }
-
-    const userRole = await this.userRoleRepository.findOne({ 
-      relations: ['role'],
-      where: { user: {userId: user.userId} } 
-    });
-
-    let userPermissions = [];
-
-    if(userRole && userRole.role) {
-      userPermissions = await this.rolePermissionRepository.find({
-        relations: ['permission'],
-        where: { role: {roleId: userRole.role.roleId} }
-      });
-    }else{
-      userPermissions = await this.userPermissionRepository.find({
-        relations: ['permission'],
-        where: { user: {userId: user.userId} }
-      });
-    }
-
-    const permissions = userPermissions.map(permission => permission.permission.permission);
-
-    user['permissions'] = permissions;
-
-  
-    const userStore = await this.userStoreRepository.findOne({
-      where: { user: {userId: user.userId} },
-      relations: ['store'], 
-    });
-
-    if(!userStore) {
-      throw new NotFoundException('User store not found.');
-    }
-  
-    if (userStore) {
-      user['store'] = userStore.store;
-    }
-
-    if(userRole) {
-      user['roleId'] = userRole.role.roleId;
-      user['role'] = userRole.role.roleName;
-    }
-  
-    return user;
-  }
-  
 
   update(id: number, updateUserDto: any) {
     return `This action updates a #${id} user`;

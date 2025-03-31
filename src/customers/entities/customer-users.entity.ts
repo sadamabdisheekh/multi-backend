@@ -11,11 +11,11 @@ export class CustomerUser {
   @PrimaryColumn({ name: 'user_id' })
   userId: number;
 
-  @ManyToOne(() => Customer, (customer) => customer.users)
+  @OneToOne(() => Customer, (customer) => customer.users)
   @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 
-  @ManyToOne(() => UserEntity, (user) => user.customers)
+  @OneToOne(() => UserEntity, (user) => user.customerUser)
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 }

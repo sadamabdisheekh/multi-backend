@@ -1,8 +1,9 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 import {  UserStore } from "./user-store.entity";
 import { UserRoles } from "src/access-control/entities/user_roles.entity";
 import { UserPermission } from "src/access-control/entities/user-permission.entity";
 import { CustomerUser } from "src/customers/entities/customer-users.entity";
+import { UserType } from "./user-types.entity";
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -40,12 +41,16 @@ export class UserEntity extends BaseEntity {
     @OneToOne(() => UserStore, userStore => userStore.user)
     userStore: UserStore;
 
-    @OneToMany(() => UserRoles, userRole => userRole.user)
+    @OneToOne(() => UserRoles, userRole => userRole.user)
     userRole: UserRoles
 
     @OneToMany(() => UserPermission, userPermission => userPermission.user)
     permissions: UserPermission[];
 
-    @OneToMany(() => CustomerUser, customerUser => customerUser.user)
-    customerUser: CustomerUser[];
+    @OneToOne(() => CustomerUser, customerUser => customerUser.user)
+    customerUser: CustomerUser;
+
+    @ManyToOne(() => UserType, userType => userType.user)
+    @JoinColumn({ name: 'userTypeId' })
+    userType: UserType;
 }

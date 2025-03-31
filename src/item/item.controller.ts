@@ -7,7 +7,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('item')
 export class ItemController {
