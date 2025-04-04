@@ -122,8 +122,14 @@ export class StoresService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} store`;
+  async findStoreByUser(user: any) {
+    if (user.userType && user.userType.userTypeId == 1) {
+      return await this.storeRepository.find()
+    }
+    return await this.storeRepository.find({
+      relations: ['userStore.user'],
+      where: { userStore: { user: { userId: user.userId } } }
+    })
   }
 
   async findStoreSchedulerByStore(storeId: number) {

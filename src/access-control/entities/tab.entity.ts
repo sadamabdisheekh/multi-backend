@@ -14,7 +14,7 @@ export class Tab {
   tabOrder: number;
 
   @ManyToOne(() => Menu, menu => menu.tabs)
-  @JoinColumn({ name: 'MENUID' })
+  @JoinColumn({ name: 'menuId' })
   menu: Menu;
 
   @Column()

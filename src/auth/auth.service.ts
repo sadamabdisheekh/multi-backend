@@ -51,7 +51,7 @@ export class AuthService {
     const hashedPassword = crypto.createHmac('sha256', password).digest('hex');
   
     const user = await this.userRepository.findOne({
-      relations: ['userStore','userRole'],
+      relations: ['userStore','userRole.role','userType'],
       where: { username, password: hashedPassword } 
     });
     if (!user) {
@@ -63,11 +63,11 @@ export class AuthService {
 
     let userPermissions = [];
 
-    const {userRole} = user;
-    if(userRole && userRole.role) {
+    const role = user.userRole ? user.userRole.role : null;
+    if(role) {
       userPermissions = await this.rolePermissionRepository.find({
         relations: ['permission'],
-        where: { role: {roleId: userRole.role.roleId} }
+        where: { role: {roleId: role.roleId} }
       });
     }else{
       userPermissions = await this.userPermissionRepository.find({

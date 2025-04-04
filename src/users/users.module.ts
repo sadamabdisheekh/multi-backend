@@ -6,9 +6,10 @@ import { UserEntity } from './user.entity';
 import {  UserStore } from './user-store.entity';
 import { Store } from 'src/stores/entities/store.entity';
 import { UserType } from './user-types.entity';
+import { UserRoles } from 'src/access-control/entities/user_roles.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([
-    UserEntity,UserStore,Store,UserType
+    UserEntity,UserStore,Store,UserType,UserRoles
   ])
   ],
   controllers: [UsersController],

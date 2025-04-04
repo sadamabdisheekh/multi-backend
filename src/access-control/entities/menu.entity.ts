@@ -10,10 +10,10 @@ export class Menu {
   @Column()
   menuName: string;
 
-  @Column()
+  @Column({nullable:true})
   description: string;
 
-  @Column()
+  @Column({nullable:true})
   route: string;
 
   @Column()

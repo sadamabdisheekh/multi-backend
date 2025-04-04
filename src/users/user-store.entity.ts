@@ -1,6 +1,6 @@
 import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne, Unique, CreateDateColumn, UpdateDateColumn} from 'typeorm';
 import {UserEntity} from "./user.entity";
-import { Store } from 'src/stores/entities/store.entity';
+import { Store } from '../stores/entities/store.entity';
 
 @Entity('user_stores')
 export class UserStore {

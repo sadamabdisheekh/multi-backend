@@ -15,6 +15,7 @@ import { CustomersModule } from './customers/customers.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { OrderModule } from './order/order.module';
 import { AccessControlModule } from './access-control/access-control.module';
+import { AppDataSource } from 'src/db/data-source';
 
 @Module({
   imports: [
@@ -25,21 +26,7 @@ import { AccessControlModule } from './access-control/access-control.module';
     MulterModule.register({
       dest: './uploads', // Destination folder for uploaded files
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'mysql',
-        host: configService.get<string>('DB_HOST'),
-        port: +configService.get<string>('DB_PORT'), // Using unary plus for conversion
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
-        // entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        autoLoadEntities: true,
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE', true),
-      }),
-    }),
+    TypeOrmModule.forRoot(AppDataSource.options),
     UsersModule,
     AuthModule,
     ModulesModule,
