@@ -1,41 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
 import * as crypto from 'crypto';
-import { UserRoles } from 'src/access-control/entities/user_roles.entity';
 import { UserPermission } from 'src/access-control/entities/user-permission.entity';
-import { Permission } from 'src/access-control/entities/permission.entity';
 import { RolePermission } from 'src/access-control/entities/role-permission.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from 'src/users/user.entity';
-import { UserStore } from 'src/users/user-store.entity';
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(UserStore)
-    private readonly userStoreRepository: Repository<UserStore>,
-    @InjectRepository(UserRoles)
-    private readonly userRoleRepository: Repository<UserRoles>,
     @InjectRepository(UserPermission)
     private readonly userPermissionRepository: Repository<UserPermission>,
-    @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
     @InjectRepository(RolePermission)
     private readonly rolePermissionRepository: Repository<RolePermission>,
   ) { }
 
-
+  async customerSignIn(payload: LoginDto): Promise<any> {
+    const customer = await this.findByEmailAndPassword(payload);
+    customer.token = this.jwtService.sign(customer,{
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRY, // Users' tokens expire
+    });
+    return customer;
+  }
 
   async signIn(
     payload: LoginDto
   ): Promise<any> {
 
-    const user = payload.isCustomerLogin ? await this.findByEmailAndPassword(payload) : await this.findByUsernameAndPassword(payload);
+    const user = await this.findByUsernameAndPassword(payload);
     const { password, ...result } = user as any;
     result.token = this.jwtService.sign(result,{
       secret: process.env.JWT_SECRET,
@@ -100,6 +97,14 @@ export class AuthService {
     if(!user.isActive) {
       throw new NotFoundException('The user account is currently inactive. Please contact support for assistance.');
     }
-    return user;
+    return {
+      userId: user.userId,
+      customerId: user.customerUser.customer.id,
+      firstName: user.customerUser.customer.firstName,
+      middleName: user.customerUser.customer.middleName,
+      lastName: user.customerUser.customer.lastName,
+      mobile: user.customerUser.customer.mobile,
+      email: user.customerUser.customer.email
+    };
   }
 }

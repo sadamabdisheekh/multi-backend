@@ -16,6 +16,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { OrderModule } from './order/order.module';
 import { AccessControlModule } from './access-control/access-control.module';
 import { AppDataSource } from 'src/db/data-source';
+import { SeederModule } from './seeder/seeder.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AppDataSource } from 'src/db/data-source';
     CustomersModule,
     OrderModule,
     AccessControlModule,
+    SeederModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -11,7 +11,7 @@ export class UserPermission {
   @PrimaryColumn({ name: 'permission_id' })
   permissionId: number;
 
-  @ManyToOne(() => UserEntity, (user) => user.permissions)
+  @ManyToOne(() => UserEntity, (user) => user.userPermissions)
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 

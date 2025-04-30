@@ -42,6 +42,8 @@ export class CustomersService {
       lastName: payload.lastName,
       username: payload.email,
       password: hashedPassword,
+      mobile: payload.mobile,
+      userType: {userTypeId: 3}
     });
     const customer = await this.customerRepository.save(createdCustomer);
     const user = await this.userRepository.save(createUser);
@@ -51,8 +53,16 @@ export class CustomersService {
     });
     await this.customerUserRepository.save(customerUser);
 
-    const {password,...result} = customer as any;
-    return result;
+    const customerData = {
+      userId: user.userId,
+      customerId: customer.id,
+      firstName: customer.firstName,
+      middleName: customer.middleName,
+      lastName: customer.lastName,
+      mobile: customer.mobile,
+      email: customer.email,
+    }
+    return customerData;
   }
 
   async findAll() {

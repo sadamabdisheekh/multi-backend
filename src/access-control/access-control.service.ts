@@ -6,17 +6,12 @@ import { TabPermission } from './entities/tab-permission.entity';
 import { RolePermission } from './entities/role-permission.entity';
 import { Role } from './entities/role.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Permission } from './entities/permission.entity';
 
 @Injectable()
 export class AccessControlService {
   constructor(
     @InjectRepository(Menu) 
-    private menuRepository: Repository<Menu>,
-    @InjectRepository(Tab) private tabRepository: Repository<Tab>,
-    @InjectRepository(TabPermission) private tabPermissionRepository: Repository<TabPermission>,
-    @InjectRepository(RolePermission) private rolePermissionRepository: Repository<RolePermission>,
-    @InjectRepository(Role) private roleRepository: Repository<Role>,
+    private menuRepository: Repository<Menu>
   ) {}
 
   async getMenusByRole(payload: any) {
@@ -59,5 +54,27 @@ export class AccessControlService {
       }))
     }));
   }
+
+  async getMenusWithPermission(user: any): Promise<any> {
+    const { userId, userRole } = user;
+    const query = this.menuRepository.createQueryBuilder('menus')
+    .innerJoinAndSelect('menus.tabs', 'T')
+    .innerJoinAndSelect('T.tabPermissions', 'TP')
+    .innerJoinAndSelect('TP.permission', 'p');
+    if(userRole && userRole.role.roleId){ 
+      query.innerJoinAndSelect('p.rolePermissions', 'rp')
+      .innerJoinAndSelect('rp.role', 'r')
+      .where('r.roleId = :roleId', { roleId: userRole.role.roleId })
+    }else{
+      query.innerJoinAndSelect('p.userPermissions', 'up')
+      .innerJoinAndSelect('up.user', 'u')
+      .where('u.userId = :userId', { userId })
+    }
+    return query.getMany();
+
+  }
+  
+
+  
   
 }

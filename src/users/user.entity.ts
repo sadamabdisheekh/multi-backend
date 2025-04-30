@@ -45,7 +45,7 @@ export class UserEntity extends BaseEntity {
     userRole: UserRoles
 
     @OneToMany(() => UserPermission, userPermission => userPermission.user)
-    permissions: UserPermission[];
+    userPermissions: UserPermission[];
 
     @OneToOne(() => CustomerUser, customerUser => customerUser.user)
     customerUser: CustomerUser;

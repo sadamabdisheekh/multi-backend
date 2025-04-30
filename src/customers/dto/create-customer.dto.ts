@@ -24,7 +24,7 @@ export class CreateCustomerDto {
   @Length(8, 50, { message: 'Password must be at least 8 characters long' })
   password: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'Email is required' })
   @IsEmail({}, { message: 'Invalid email address' })
   email: string;
 }

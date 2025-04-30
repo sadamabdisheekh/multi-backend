@@ -8,7 +8,9 @@ import { UserStore } from './user-store.entity';
 import { Store } from 'src/stores/entities/store.entity';
 import { UserType } from './user-types.entity';
 import { UserRoles } from 'src/access-control/entities/user_roles.entity';
-
+import { Role } from 'src/access-control/entities/role.entity';
+import * as _ from 'underscore';
+import { UserPermission } from 'src/access-control/entities/user-permission.entity';
 @Injectable()
 export class UsersService {
   constructor(
@@ -21,6 +23,10 @@ export class UsersService {
     private readonly userTypeRepository: Repository<UserType>,
     @InjectRepository(UserRoles)
     private readonly userRoleRepository: Repository<UserRoles>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
+    @InjectRepository(UserPermission)
+    private readonly userPermissionRepository: Repository<UserPermission>,
   ) {
   }
 
@@ -68,14 +74,59 @@ export class UsersService {
   }
 
 
-  async findAll() {
-    return await this.userRepository.find({
-      relations: ['profile.store']
+  async findAll(storeId: number) {
+    const users = await this.userRepository.find({
+      relations: ['userStore.store'],
+      where: {
+        userStore: {
+          store: { id: storeId }
+        }
+      }
     });
+     return users;
+
   }
 
   async getUserTypes({ userType }: any) {
     const condition = userType.userTypeId === 1 ? {} : { userTypeId: Not(1) };
     return await this.userTypeRepository.find({ where: condition });
+  }
+
+  async getUserPermission(userId: number): Promise<any> {
+    const user = await this.userRepository.findOne({
+      relations: ['userRole', 'userRole.role', 'userPermissions', 'userPermissions.permission'],
+       where: { userId } 
+      });
+    const roleId = user?.userRole?.role?.roleId;
+
+    let  permissions =roleId ?
+      await this.roleRepository.find({ relations: ['rolePermissions', 'rolePermissions.permission'] })
+    : user.userPermissions;
+
+    return permissions.map(({ permission }: any) => ({
+      permissionId: permission.permissionId,
+      permission: permission.permission,
+      description: permission.description,
+    }));
+  }
+
+  async updateUserPermission(body: any){
+    const { userId, latestPermissionIds } = body;
+    const user = await this.userRepository.findOne({ where: { userId } });
+    const userPermissions = await this.userPermissionRepository.find({ 
+      relations: ['permission'],
+      where: { user: { userId: user.userId } } 
+    });
+    const userPermissionsIds = userPermissions.map(({ permission }: any) => permission.permissionId);
+    const oldPermissions =  _.difference(userPermissionsIds,latestPermissionIds);
+    const newPermissions = _.difference(latestPermissionIds, userPermissionsIds);
+    for(let i = 0; i < oldPermissions.length; i++){
+      await this.userPermissionRepository.delete({ user: user, permission: { permissionId: oldPermissions[i] } });
+    }
+    for(let i = 0; i < newPermissions.length; i++){
+      const newPermission = this.userPermissionRepository.create({ user: user, permission: { permissionId: newPermissions[i] } });
+      await this.userPermissionRepository.save(newPermission);
+    }
+    return { message: 'Permissions updated successfully' };
   }
 }

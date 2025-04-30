@@ -10,6 +10,9 @@ export class AuthController {
   @Post('/login')
   async loginWithPhoneNumberAndPassword(@Body() payload: LoginDto): Promise<any> {
 
+    if(payload.isCustomerLogin) {
+      return await this.authService.customerSignIn(payload);
+    }
     return await this.authService.signIn(payload);
   }
 

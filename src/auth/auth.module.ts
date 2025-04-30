@@ -20,7 +20,7 @@ dotenv.config();
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity, UserStore, UserRoles, UserPermission, Permission, RolePermission, UserType]),
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET, 
       signOptions: { expiresIn: process.env.JWT_EXPIRY },
