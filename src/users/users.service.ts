@@ -9,7 +9,7 @@ import { Store } from 'src/stores/entities/store.entity';
 import { UserType } from './user-types.entity';
 import { UserRoles } from 'src/access-control/entities/user_roles.entity';
 import { Role } from 'src/access-control/entities/role.entity';
-import * as _ from 'underscore';
+import * as _ from 'lodash';
 import { UserPermission } from 'src/access-control/entities/user-permission.entity';
 @Injectable()
 export class UsersService {

@@ -12,11 +12,11 @@ import { StoresModule } from './stores/stores.module';
 import { ItemModule } from './item/item.module';
 import { CartModule } from './cart/cart.module';
 import { CustomersModule } from './customers/customers.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { OrderModule } from './order/order.module';
 import { AccessControlModule } from './access-control/access-control.module';
-import { AppDataSource } from 'src/db/data-source';
 import { SeederModule } from './seeder/seeder.module';
+import { AppDataSource } from 'db/data-source';
 
 @Module({
   imports: [
