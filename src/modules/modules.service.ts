@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateModuleDto } from './dto/create-module.dto';
-import { UpdateModuleDto } from './dto/update-module.dto';
-import { ModuleEntity } from './module.entity';
+import { ModuleEntity } from './entities/module.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FilePaths } from 'common/enum';
 import { UploadService } from 'common/UploadService';
+import { ZoneEntity } from './entities/zone.entity';
 
 @Injectable()
 export class ModulesService {
@@ -14,6 +14,8 @@ export class ModulesService {
     @InjectRepository(ModuleEntity) 
     private moduleRepository: Repository<ModuleEntity>,
     private readonly uploadService: UploadService, 
+    @InjectRepository(ZoneEntity)
+    private readonly zoneRepository: Repository<ZoneEntity>,
   ) {}
 
   async create(file: Express.Multer.File, payload: CreateModuleDto) {
@@ -43,10 +45,6 @@ export class ModulesService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} module`;
-  }
-
   async update(id: number, file: Express.Multer.File, payload: CreateModuleDto) {
     const module = await this.moduleRepository.findOneBy({ id });
     if (!module) {
@@ -74,5 +72,25 @@ export class ModulesService {
 
   remove(id: number) {
     return this.moduleRepository.delete(id);
+  }
+
+  async addZone(payload: any) {
+    const {name,status} = payload;
+    const isZoneExist = await this.zoneRepository.findOneBy({ name });
+    if (isZoneExist) {
+      throw new NotAcceptableException('This zone already exists');
+    }
+    const zone = this.zoneRepository.create({
+      name: name,
+      status: status,
+      created_at: new Date()
+    });
+    return await this.zoneRepository.save(zone);
+
+  }
+  async getZones() {
+    return await this.zoneRepository.find({
+      where: { status: true }
+    });
   }
 }

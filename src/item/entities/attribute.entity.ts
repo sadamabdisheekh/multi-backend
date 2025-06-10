@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { AttributeValue } from './attribute-value.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { AttributeValue } from "./attribute-value.entity";
 
-@Entity()
+@Entity('attributes')
 export class Attribute {
   @PrimaryGeneratedColumn()
   id: number;

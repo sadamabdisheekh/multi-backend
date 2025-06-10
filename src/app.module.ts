@@ -5,8 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ModulesModule } from './modules/modules.module';
-import { ZonesModule } from './zones/zones.module';
-import { ModuleZoneModule } from './module-zone/module-zone.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { StoresModule } from './stores/stores.module';
 import { ItemModule } from './item/item.module';
@@ -31,13 +29,11 @@ import { AppDataSource } from 'db/data-source';
     UsersModule,
     AuthModule,
     ModulesModule,
-    ZonesModule,
-    ModuleZoneModule,
     StoresModule,
     ItemModule,
-    CartModule,
+    // CartModule,
     CustomersModule,
-    OrderModule,
+    // OrderModule,
     AccessControlModule,
     SeederModule,
   ],

@@ -22,7 +22,7 @@ export class UserEntity extends BaseEntity {
     @Column({unique: true})
     username: string;
 
-    @Column({ default: true })
+    @Column({ default: false })
     isActive: boolean;
 
     @CreateDateColumn({ type: 'timestamp' })

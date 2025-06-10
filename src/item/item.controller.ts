@@ -19,9 +19,9 @@ export class ItemController {
     @UploadedFile() file: Express.Multer.File,
     @Body('jsondata') jsondata: string 
   ): Promise<any> {
-    if (!file) {
-      throw new BadRequestException('File is not defined');
-    }
+    // if (!file) {
+    //   throw new BadRequestException('File is not defined');
+    // }
 
     const parsedData = plainToInstance(CreateItemDto, JSON.parse(jsondata));
 
@@ -31,6 +31,27 @@ export class ItemController {
     }
     
     return await this.itemService.createItem(parsedData,file);
+  }
+
+  @Get('/getitemsinstock')
+  async findStoreItemsInStock() {
+    try {
+      return await this.itemService.findStoreItemsInStockWithAttributes(1);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to retrieve items in stock');
+    }
+  }
+
+  @Post('/allprice')
+   async getAllPrices(@Body() payload: any) {
+    const {storeItemId,variationId} = payload;
+    return this.itemService.findAvailablePrices(storeItemId, variationId);
+  }
+
+  @Post('/allbestprice')
+  async getBestPrice(@Body() payload: any) {
+    const {storeItemId,variationId} = payload;
+    return this.itemService.findCheapestPrice(storeItemId, variationId);
   }
 
   @Get('/getitems')
@@ -52,12 +73,6 @@ export class ItemController {
   @Post('/updatestoreitem')
   updateStoreItem(@Body() payload: UpdateStoreItemDto) {
     return this.itemService.updateStoreItem(payload)
-  }
-  // item types
-
-  @Get('/finditemtypes')
-  async getItemTypes(): Promise<any> {
-   return await this.itemService.getItemTypes();
   }
 
   // brand
@@ -118,13 +133,6 @@ export class ItemController {
     return await this.itemService.getItemsByFilter(filterDto);
   }
 
-  @Post('getitemattributes')
-  async getItemsAttributes(
-    @Body() filterDto: FindItemsByFilterDto
-  ) {
-    return await this.itemService.getItemAttributes(filterDto);
-  }
-
   @Post(':itemId/images')
   @UseInterceptors(FilesInterceptor('files')) // Handles multiple file uploads
   async uploadItemImages(
@@ -161,8 +169,10 @@ export class ItemController {
     }
   }
 
-  @Get('getItemDetailsForMobile')
-  async getItemDetailsForMobile(@Query('storeItemId') storeItemId: number) {
-    return this.itemService.getItemDetailsForMobile(storeItemId);
+  // get item by name
+  @Get('getitembyname')
+  async getItemByName(@Query('itemName') itemName: string): Promise<any> {
+    const items =  await this.itemService.getItemByName(itemName);
+    return items;
   }
 }

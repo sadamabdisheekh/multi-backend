@@ -46,13 +46,13 @@ export class CartService {
     cart: {cart_id: cart.cart_id} },
     });
 
-    if (
-      (cartItem && cartItem.quantity > storeItem.availableStock) ||
-      (!cartItem && payload.quantity > storeItem.availableStock)
-    )
-    {
-      throw new NotFoundException('Insufficient stock.');
-    }
+    // if (
+    //   (cartItem && cartItem.quantity > storeItem.availableStock) ||
+    //   (!cartItem && payload.quantity > storeItem.availableStock)
+    // )
+    // {
+    //   throw new NotFoundException('Insufficient stock.');
+    // }
   
     if (cartItem) {
       cartItem.quantity += payload.quantity;
@@ -116,9 +116,9 @@ export class CartService {
       throw new NotFoundException(`this cart with store item id ${storeItemId} not found`);
     }
 
-    if (cartItem.quantity >= cartItem.storeItem.availableStock) {
-      throw new NotFoundException('Insufficient stock.');
-    }
+    // if (cartItem.quantity >= cartItem.storeItem.availableStock) {
+    //   throw new NotFoundException('Insufficient stock.');
+    // }
 
     cartItem.quantity += 1;
 

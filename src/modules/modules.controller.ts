@@ -21,14 +21,9 @@ export class ModulesController {
     return this.modulesService.create(file, payload);
   }
 
-  @Get()
+  @Get('get-modules')
   findAll() {
     return this.modulesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.modulesService.findOne(+id);
   }
 
   @Patch(':id')
@@ -47,4 +42,15 @@ export class ModulesController {
   remove(@Param('id') id: string) {
     return this.modulesService.remove(+id);
   }
+  // add new zone
+  @Post('add-zone')
+  async addZone(@Body() payload: any) {
+    return await this.modulesService.addZone(payload);
+  }
+
+  @Get('zones')
+  async getZones() {
+    return await this.modulesService.getZones();
+  }
+
 }

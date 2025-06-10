@@ -15,7 +15,11 @@ export class OrderController {
     @Req() req:any,
     @Body() payload: any
   )  {
-    const customerId = req.user.id;
+    const customerId = req.user.customerId;
+    if (!customerId) {
+      throw new Error('Customer ID is required to create an order.');
+    }
+
     await this.orderService.createOrder(customerId,payload);
     return {message : "order created successfully"};
   }

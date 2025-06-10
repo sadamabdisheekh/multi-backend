@@ -2,13 +2,11 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { AttributeDto, CreateItemDto } from './dto/create-item.dto';
 import { Item } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {  In, Repository } from 'typeorm';
+import {  In, Like, MoreThan, Repository } from 'typeorm';
 import { Store } from 'src/stores/entities/store.entity';
-import { ItemTypes } from './entities/item-type.entity';
 import { Brand } from './entities/brand.entity';
 import { Category } from './entities/category.entity';
 import { ItemVariation } from './entities/item-variation.entity';
-import { ItemVariationAttribute } from './entities/item-variation-attribute.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { Attribute } from './entities/attribute.entity';
 import { ItemDetailsDto } from './dto/item-details.dto';
@@ -17,6 +15,8 @@ import { UploadService } from 'common/UploadService';
 import { FilePaths } from 'common/enum';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { ItemImage } from './entities/item-images.entity';
+import { ItemVariationAttributeValue } from './entities/item-variation-attribute-value.entity';
+import { StoreItemPrice } from 'src/stores/entities/store-item-price.entity';
 
 @Injectable()
 export class ItemService {
@@ -25,12 +25,10 @@ constructor(
   private itemsRepository: Repository<Item>,
   @InjectRepository(Store)
   private readonly storeRepository: Repository<Store>,
-  @InjectRepository(ItemTypes)
-  private readonly itemTypeRepository: Repository<ItemTypes>,
   @InjectRepository(ItemVariation)
   private readonly itemVariationRepository: Repository<ItemVariation>,
-  @InjectRepository(ItemVariationAttribute)
-  private readonly itemVariationAttributeRepository: Repository<ItemVariationAttribute>,
+  @InjectRepository(ItemVariationAttributeValue)
+  private readonly itemVariationAttributeValueRepository: Repository<ItemVariationAttributeValue>,
   @InjectRepository(Brand)
   private readonly brandRepository: Repository<Brand>,
   @InjectRepository(Category)
@@ -41,7 +39,9 @@ constructor(
   private readonly attributeRepository: Repository<Attribute>,
   private readonly uploadService: UploadService, 
   @InjectRepository(ItemImage)
-  private readonly itemImagesRepository: Repository<ItemImage>
+  private readonly itemImagesRepository: Repository<ItemImage>,
+  @InjectRepository(StoreItemPrice)
+  private readonly storeItemPriceRepository: Repository<StoreItemPrice>
 
 ){}
   async createItem(payload: CreateItemDto,file:Express.Multer.File) {
@@ -50,14 +50,18 @@ constructor(
     if (!store) {
       throw new Error(`Store with ID ${payload.storeId} does not exist.`);
     }
-  
-    // Check if item already exists; if not, create and save it
-    let item = await this.itemsRepository.findOne({
-      where: {
-        name: payload.name,
-        itemType: { item_type_id: payload.itemTypeId },
-      },
-    });
+
+    let item = null;
+    if (payload.itemId) {
+      item = await this.itemsRepository.findOneBy({ id: payload.itemId });
+    }else {
+      item = await this.itemsRepository.findOne({
+        where: {
+          name: payload.name,
+          category: { id: payload.categoryId },
+        },
+      });
+    }
 
     if (!item) {
       let filename = null;
@@ -67,7 +71,7 @@ constructor(
       item = await this.itemsRepository.save(
         this.itemsRepository.create({
           name: payload.name,
-          itemType: { item_type_id: payload.itemTypeId },
+          hasVariations: payload.hasVariation,
           category: { id: payload.categoryId },
           brand: { id: payload.brandId },
           thumbnail: filename,
@@ -78,7 +82,7 @@ constructor(
     }
   
     // Handle attributes if itemTypeId is 2
-    if (payload.itemTypeId === 2 && payload.attribute) {
+    if (payload.hasVariation && payload.attribute) {
       await this.addAttributesAndStoreItems(payload.attribute, item, store);
     } else {
       // Add a default store item if no attributes are specified
@@ -95,7 +99,7 @@ constructor(
   
       // Only add VariationAttributes if the variation is new
       if (isNew) {
-        await this.addVariationAttributes(attr.ids, variation);
+        await this.addVariationAttributes(attr, variation);
       }
   
       await this.createStoreItem(attr, item, store, variation);
@@ -104,24 +108,25 @@ constructor(
   
   // Helper function to find or create a variation, returning whether it was new
   private async findOrCreateVariation(sku: string, item: Item) {
-    const existingVariation = await this.itemVariationRepository.findOneBy({ sku,item });
+    const existingVariation = await this.itemVariationRepository.findOneBy({ sku,item: { id: item.id }  });
     if (existingVariation) {
       return { variation: existingVariation, isNew: false };
     }
   
     const newVariation = await this.itemVariationRepository.save(
-      this.itemVariationRepository.create({ sku, item })
+      this.itemVariationRepository.create({ sku, item ,variationName: sku})
     );
     return { variation: newVariation, isNew: true };
   }
   
   // Helper function to add variation attributes
-  private async addVariationAttributes(attributeIds: number[], variation: ItemVariation) {
-    for (const id of attributeIds) {
-      await this.itemVariationAttributeRepository.save(
-        this.itemVariationAttributeRepository.create({
-          itemVariation: variation,
+  private async addVariationAttributes(attr: any, variation: ItemVariation) {
+    for (const id of attr.ids) {
+      await this.itemVariationAttributeValueRepository.save(
+        this.itemVariationAttributeValueRepository.create({
+          variation: variation,
           attributeValue: { id },
+          attribute: { id: attr.id }, // Assuming attribute ID is the same as attributeValue ID
         })
       );
     }
@@ -130,21 +135,95 @@ constructor(
   // Helper function to create store item
   private async createStoreItem(attr: { price: number; stock: number }, item: Item, store: Store, variation: ItemVariation | null = null) {
     let storeItem = await this.storeItemRepository.findOne({
-      where: { item, store },
+      where: { item :{id: item.id}, store: {id: store.id} },
     });
-    storeItem = this.storeItemRepository.create({
-      item,
-      store,
-      price: item.itemType.item_type_id === 1 ? attr.price : null,
-      stock: item.itemType.item_type_id === 1 ? attr.stock : null,
-      availableStock: item.itemType.item_type_id === 1 ? attr.stock : null,
+    if (!storeItem) {
+      let createStoreItem = this.storeItemRepository.create({
+        item,
+        store,
+        createdAt: new Date(),
+      });
+      storeItem = await this.storeItemRepository.save(createStoreItem);
+    } 
+
+    // // find existing store item price or create a new one
+    // let existingPrice = await this.storeItemPriceRepository.findOne({
+    //   where: { storeItem: {id: storeItem.id}, variation: {id: variation.id || null} },
+    // });
+
+    // if (existingPrice) {
+    //   existingPrice.price = attr.price;
+    //   existingPrice.stock += attr.stock;
+    //   try {
+    //     await this.storeItemPriceRepository.save(existingPrice);
+    //     return;
+    //   } catch (error) {
+    //     throw new InternalServerErrorException('Failed to update store item price');
+    //   }
+    // }
+
+    let createStoreItemPrice = this.storeItemPriceRepository.create({
+      storeItem,
+      price: attr.price,
+      stock: attr.stock,
+      variation: variation  || null,  
+      availableFrom: new Date(),
+      availableTo: null, 
     });
-  
-    return await this.storeItemRepository.save(storeItem);
+    try {
+      await this.storeItemPriceRepository.save(createStoreItemPrice);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to save store item price');
+    }
 
   }
   
-  
+  async findStoreItemsInStockWithAttributes(storeId: number) {
+  return this.storeItemRepository.find({
+    where: {
+      store: { id: storeId },
+      prices: {
+        stock: MoreThan(0),
+      },
+    },
+    relations: [
+      'item',
+      'prices',
+      'prices.variation',
+      'prices.variation.attributeValues',
+      'prices.variation.attributeValues.attribute',
+    ],
+  });
+}
+
+async findAvailablePrices(storeItemId: number, variationId?: number) {
+  return this.storeItemPriceRepository.find({
+    relations: {
+      storeItem: {
+        item: true
+      }
+    },
+    where: {
+      storeItem: { id: storeItemId },
+      variation: variationId ? { id: variationId } : null,
+      stock: MoreThan(0),
+    },
+    order: { price: 'ASC' }, // optional
+  });
+}
+
+async findCheapestPrice(storeItemId: number, variationId?: number) {
+  return this.storeItemPriceRepository.findOne({
+    where: {
+      storeItem: { id: storeItemId },
+      variation: variationId ? { id: variationId } : null,
+      stock: MoreThan(0),
+    },
+    order: { price: 'ASC' },
+  });
+}
+
+
   
 
   async getItems(storeId: number): Promise<any> {
@@ -195,7 +274,7 @@ constructor(
         where: {
           store: { id: storeId },
           item: { id: itemId },
-          itemVariation: { sku: itemVariation },
+          // itemVariation: { sku: itemVariation },
         },
       });
 
@@ -203,8 +282,8 @@ constructor(
         throw new NotFoundException(`store item not found`);
       }
 
-      storeItem.price = price;
-      storeItem.stock = stock;
+      // storeItem.price = price;
+      // storeItem.stock = stock;
 
       return await this.storeItemRepository.save(storeItem);
     }
@@ -213,12 +292,6 @@ constructor(
     return `This action removes a #${id} item`;
   }
 
-  // item types
-  async getItemTypes() {
-    return await this.itemTypeRepository.find({
-      where: {isActive: true}
-    })
-  }
 
   // brands
   async getBrands() {
@@ -331,36 +404,6 @@ constructor(
     return  items;
   }
 
-    async getItemAttributes(filterDto: FindItemsByFilterDto) {
-    const { categoryId } = filterDto;
-
-    const items = await this.storeItemRepository.find({
-      where: {
-        item: {
-          category: {id: categoryId}
-        }
-      },
-      relations: {
-        itemVariation: {
-          attributes: {
-            attributeValue: true
-          }
-        }
-      }
-    })
-
-    const attributeValueIds = items.flatMap(item =>
-      item.itemVariation?.attributes.map(attr => attr.attributeValue.id) || []
-    );
-
-    const attributes = await this.attributeRepository.find({
-      where: { values: { id: In(attributeValueIds) } },
-      relations: ['values'],
-    });
-
-    return  attributes;
-  }
-
   private flattenCategoryIds(categories: Category[], result: number[] = []): number[] {
     for (const category of categories) {
       result.push(category.id);
@@ -418,45 +461,17 @@ constructor(
     }
   }
 
-  async getItemDetailsForMobile(itemStoreId: number) {
-    try {
-      const itemStore = await this.storeItemRepository.findOne({
-        relations: {
-          store: true,
-          item: {
-            images: true,
-            itemUnit: true
-          },
-          itemVariation: {
-            attributes: {
-              attributeValue: true,
-            },
-          },
-        },
-        where: { id: itemStoreId },
-      });
-  
-      if (!itemStore) {
-        throw new Error(`ItemStore with ID ${itemStoreId} not found.`);
-      }
-  
-      const attributeValueIds = itemStore.itemVariation?.attributes?.map(
-        (attr) => attr?.attributeValue?.id
-      ) || [];
-  
-      const attributes = await this.attributeRepository.find({
-        where: { values: { id: In(attributeValueIds) } },
-        relations: ['values'],
-      });
-  
-      return {
-        itemStore,
-        attributes,
-      };
-    } catch (error) {
-      console.error(`Error fetching item details: ${error.message}`);
-      throw new InternalServerErrorException('Unable to fetch item details. Please try again later.');
-    }
+
+  // use like
+  async getItemByName(name: string) {
+    return await this.itemsRepository.find({
+      relations: {
+        category: true,
+        itemUnit: true,
+        brand: true,
+      },
+      where: {name: Like(`%${name}%`)}
+    })
   }
     
 }

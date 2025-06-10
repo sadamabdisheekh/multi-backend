@@ -15,7 +15,8 @@ export class UserDto {
     @IsNotEmpty()
     username: string;
 
-    @IsNotEmpty()
+    @IsOptional()
+    @IsNumber()
     isActive: boolean;
     
     dateCreated: Date;

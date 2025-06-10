@@ -1,4 +1,3 @@
-import { ModuleZoneEntity } from 'src/module-zone/module-zone.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity('modules')
@@ -27,7 +26,4 @@ export class ModuleEntity {
 
     @Column({ nullable: true })
     updated_at: Date;
-
-    @OneToMany(() => ModuleEntity, module => module.moduleZones)
-    moduleZones: ModuleZoneEntity[];
 }

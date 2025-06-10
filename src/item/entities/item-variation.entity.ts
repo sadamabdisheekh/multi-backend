@@ -1,29 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Item } from './item.entity';
-import { ItemVariationAttribute } from './item-variation-attribute.entity';
-import { StoreItem } from 'src/stores/entities/store-item.entity';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Item } from "./item.entity";
+import { StoreItemPrice } from "src/stores/entities/store-item-price.entity";
+import { ItemVariationAttributeValue } from "./item-variation-attribute-value.entity";
 
-@Entity()
+@Entity('item_variations')
 export class ItemVariation {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ unique: true })
-    sku: string;
+  @ManyToOne(() => Item, item => item.variations)
+  item: Item;
 
-    @CreateDateColumn({ type: 'timestamp' })
-    createdAt: Date;
+  @Column()
+  sku: string;
 
-    @UpdateDateColumn({ type: 'timestamp' })
-    updatedAt: Date;
+  @Column()
+  variationName: string;
 
-    @ManyToOne(() => Item, item => item.itemVariations)
-    item: Item;
+  @OneToMany(() => ItemVariationAttributeValue, vav => vav.variation)
+  attributeValues: ItemVariationAttributeValue[];
+  
 
-    @OneToMany(() => ItemVariationAttribute, attribute => attribute.itemVariation)
-    attributes: ItemVariationAttribute[];
-    
-    @OneToMany(() => StoreItem, storeItem => storeItem.itemVariation)
-    storeItem: StoreItem[];
-    
+  @OneToMany(() => StoreItemPrice, price => price.variation)
+  prices: StoreItemPrice[];
 }

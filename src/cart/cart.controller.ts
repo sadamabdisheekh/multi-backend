@@ -17,10 +17,10 @@ export class CartController {
   @Get('/getcartitems')
   findAll(@Request() req:any) {
     const customer = req.user;
-    if (!customer.id) {
+    if (!customer.customerId) {
       throw new NotAcceptableException();
     }
-    return this.cartService.findAll(customer.id);
+    return this.cartService.findAll(customer.customeId);
   }
 
 

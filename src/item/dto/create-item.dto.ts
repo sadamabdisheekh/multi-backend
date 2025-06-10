@@ -1,4 +1,4 @@
-import { IsArray, IsNumber, IsOptional, IsString, ValidateNested, IsNotEmpty } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString, ValidateNested, IsNotEmpty, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AttributeDto {
@@ -22,8 +22,13 @@ export class AttributeDto {
 }
 
 export class CreateItemDto {
+  @IsBoolean()
+  hasVariation: boolean;
+
+  @IsOptional()
   @IsNumber()
-  itemTypeId: number;
+  itemId: number | null;
+
 
   @IsString()
   @IsNotEmpty()
@@ -51,6 +56,7 @@ export class CreateItemDto {
   @IsNumber()
   price: number;
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AttributeDto) 

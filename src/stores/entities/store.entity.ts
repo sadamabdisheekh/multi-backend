@@ -1,8 +1,8 @@
-import { ZoneEntity } from 'src/zones/zone.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { StoreSchedule } from './store-schedule.entity';
 import { StoreItem } from './store-item.entity';
 import {  UserStore } from 'src/users/user-store.entity';
+import { ZoneEntity } from 'src/modules/entities/zone.entity';
 
 @Entity('stores')
 export class Store {

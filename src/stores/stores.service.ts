@@ -4,11 +4,11 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Store } from './entities/store.entity';
 import { Repository } from 'typeorm';
-import { ZoneEntity } from 'src/zones/zone.entity';
 import { FilePaths } from 'common/enum';
 import { StoreSchedule } from './entities/store-schedule.entity';
 import { SchedulesDto } from './dto/store-schedule.dto';
 import { UploadService } from 'common/UploadService';
+import { ZoneEntity } from 'src/modules/entities/zone.entity';
 
 @Injectable()
 export class StoresService {

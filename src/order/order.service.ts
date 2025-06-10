@@ -161,11 +161,11 @@ export class OrderService {
         const storeItem = item.storeItem;
         const quantityOrdered = item.quantity;
   
-        if (storeItem.availableStock < quantityOrdered) {
-          throw new Error(
-            `Insufficient stock for item ${storeItem.item.name}. Available: ${storeItem.stock}, Required: ${quantityOrdered}`,
-          );
-        }
+        // if (storeItem.availableStock < quantityOrdered) {
+        //   throw new Error(
+        //     `Insufficient stock for item ${storeItem.item.name}. Available: ${storeItem.stock}, Required: ${quantityOrdered}`,
+        //   );
+        // }
       }
   
       // Calculate total amount
@@ -181,6 +181,7 @@ export class OrderService {
         paymentStatus,
         orderStatus,
         totalAmount,
+        orderDate: new Date(),
       });
   
       const now = new Date();
@@ -207,7 +208,7 @@ export class OrderService {
       // Deduct stock for all items
       for (const item of orderItems) {
         const storeItem = item.storeItem;
-        storeItem.availableStock -= item.quantity;
+        // storeItem.availableStock -= item.quantity;
         await queryRunner.manager.save(storeItem);
       }
   

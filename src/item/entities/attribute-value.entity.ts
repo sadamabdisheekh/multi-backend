@@ -1,14 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Attribute } from './attribute.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Attribute } from "./attribute.entity";
 
-@Entity()
+@Entity('attribute_values')
 export class AttributeValue {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Attribute, attribute => attribute.values)
+  @ManyToOne(() => Attribute, attr => attr.values)
   attribute: Attribute;
 
   @Column()
-  name: string;
+  value: string;
 }

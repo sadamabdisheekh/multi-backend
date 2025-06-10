@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestExc
 import { AccessControlService } from './access-control.service';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('access-control')
 export class AccessControlController {
   constructor(private readonly accessControlService: AccessControlService) {}
@@ -14,7 +15,6 @@ export class AccessControlController {
     return this.accessControlService.getMenusByRole(payload);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/menuswithpermission')
   async getMenusWithPermission(@Req() req: any): Promise<any> {
       const menus = await this.accessControlService.getMenusWithPermission(req.user);
