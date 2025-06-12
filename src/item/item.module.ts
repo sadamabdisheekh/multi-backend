@@ -14,11 +14,11 @@ import { UploadService } from 'common/UploadService';
 import { ItemImage } from './entities/item-images.entity';
 import { AttributeValue } from './entities/attribute-value.entity';
 import { ItemUnit } from './entities/item-unit.entity';
-import { StoreItemPrice } from 'src/stores/entities/store-item-price.entity';
+import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
-    Category,Store,StoreItem,StoreItemPrice,ItemImage,
+    Category,Store,StoreItem,StoreItemVariation,ItemImage,
     Item,Brand,ItemVariation,ItemVariationAttributeValue,
     Attribute,AttributeValue,ItemUnit
   ])],

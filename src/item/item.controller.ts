@@ -35,8 +35,9 @@ export class ItemController {
 
   @Get('/getitemsinstock')
   async findStoreItemsInStock() {
+    return await this.itemService.findStoreItemsInStockWithAttributes(1);
     try {
-      return await this.itemService.findStoreItemsInStockWithAttributes(1);
+      
     } catch (error) {
       throw new InternalServerErrorException('Failed to retrieve items in stock');
     }
@@ -61,8 +62,7 @@ export class ItemController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/getitemsdetails')
-  async getItemDetails(@Body() payload: ItemDetailsDto,@Request() req) {
-    const user = req.user;
+  async getItemDetails(@Body() payload: ItemDetailsDto) {
     return await this.itemService.getItemDetails(payload);
   }
   @Delete(':id')

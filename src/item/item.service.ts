@@ -16,7 +16,7 @@ import { FilePaths } from 'common/enum';
 import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { ItemImage } from './entities/item-images.entity';
 import { ItemVariationAttributeValue } from './entities/item-variation-attribute-value.entity';
-import { StoreItemPrice } from 'src/stores/entities/store-item-price.entity';
+import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Injectable()
 export class ItemService {
@@ -40,185 +40,203 @@ constructor(
   private readonly uploadService: UploadService, 
   @InjectRepository(ItemImage)
   private readonly itemImagesRepository: Repository<ItemImage>,
-  @InjectRepository(StoreItemPrice)
-  private readonly storeItemPriceRepository: Repository<StoreItemPrice>
+  @InjectRepository(StoreItemVariation)
+  private readonly storeItemVariationRepository: Repository<StoreItemVariation>
 
 ){}
-  async createItem(payload: CreateItemDto,file:Express.Multer.File) {
-    // Check if the store exists and retrieve the store object
-    const store = await this.storeRepository.findOneBy({ id: payload.storeId });
-    if (!store) {
-      throw new Error(`Store with ID ${payload.storeId} does not exist.`);
-    }
 
-    let item = null;
-    if (payload.itemId) {
-      item = await this.itemsRepository.findOneBy({ id: payload.itemId });
-    }else {
-      item = await this.itemsRepository.findOne({
-        where: {
-          name: payload.name,
-          category: { id: payload.categoryId },
-        },
+async createItem(payload: CreateItemDto, file: Express.Multer.File) {
+  // 1. Validate store exists
+  const store = await this.storeRepository.findOneBy({ id: payload.storeId });
+  if (!store) {
+    throw new NotFoundException(`Store with ID ${payload.storeId} does not exist.`);
+  }
+
+  // 2. Find or create item
+  const item = await this.findOrCreateItem(payload, file);
+
+  
+  if (payload.hasVariation && payload.attribute) {
+    for (const attr of payload.attribute) {
+      // Find or create variation
+      let variation = await this.itemVariationRepository.findOneBy({ 
+        sku: attr.variation, 
+        item: { id: item.id }  
       });
-    }
+      
+      if (!variation) {
+        variation = await this.itemVariationRepository.save(
+          this.itemVariationRepository.create({ 
+            sku: attr.variation, 
+            item,
+            variationName: attr.variation 
+          })
+        );
 
-    if (!item) {
-      let filename = null;
-      if (file) {
-       filename =  this.uploadService.saveFile(file,FilePaths.ITEMS);
+        // Create variation attributes for new variations
+        const attributeValues = attr.attrIds.map((id,index) => ({
+          itemVariation: variation,
+          attribute: {id},
+          attributeValue: { id: attr.ids[index]  },
+        }));
+        await this.itemVariationAttributeValueRepository.save(attributeValues);
       }
-      item = await this.itemsRepository.save(
-        this.itemsRepository.create({
-          name: payload.name,
-          hasVariations: payload.hasVariation,
-          category: { id: payload.categoryId },
-          brand: { id: payload.brandId },
-          thumbnail: filename,
-          description: payload.description,
-        })
-      );
 
+      // Create store item variation
+      await this.handleStoreItem(item, store, attr, variation);
     }
-  
-    // Handle attributes if itemTypeId is 2
-    if (payload.hasVariation && payload.attribute) {
-      await this.addAttributesAndStoreItems(payload.attribute, item, store);
-    } else {
-      // Add a default store item if no attributes are specified
-      await this.createStoreItem({ price: payload.price, stock: payload.stock }, item, store);
-    }
-  
-    return item;
+  } else {
+    // Handle simple item without variations
+    await this.handleStoreItem(item, store, payload);
   }
   
-  // Helper function to add attributes and store items
-  private async addAttributesAndStoreItems(attributes: AttributeDto[], item: Item, store: Store) {
-    for (const attr of attributes) {
-      const { variation, isNew } = await this.findOrCreateVariation(attr.variation, item);
-  
-      // Only add VariationAttributes if the variation is new
-      if (isNew) {
-        await this.addVariationAttributes(attr, variation);
-      }
-  
-      await this.createStoreItem(attr, item, store, variation);
-    }
-  }
-  
-  // Helper function to find or create a variation, returning whether it was new
-  private async findOrCreateVariation(sku: string, item: Item) {
-    const existingVariation = await this.itemVariationRepository.findOneBy({ sku,item: { id: item.id }  });
-    if (existingVariation) {
-      return { variation: existingVariation, isNew: false };
-    }
-  
-    const newVariation = await this.itemVariationRepository.save(
-      this.itemVariationRepository.create({ sku, item ,variationName: sku})
-    );
-    return { variation: newVariation, isNew: true };
-  }
-  
-  // Helper function to add variation attributes
-  private async addVariationAttributes(attr: any, variation: ItemVariation) {
-    for (const id of attr.ids) {
-      await this.itemVariationAttributeValueRepository.save(
-        this.itemVariationAttributeValueRepository.create({
-          variation: variation,
-          attributeValue: { id },
-          attribute: { id: attr.id }, // Assuming attribute ID is the same as attributeValue ID
-        })
-      );
-    }
-  }
-  
-  // Helper function to create store item
-  private async createStoreItem(attr: { price: number; stock: number }, item: Item, store: Store, variation: ItemVariation | null = null) {
-    let storeItem = await this.storeItemRepository.findOne({
-      where: { item :{id: item.id}, store: {id: store.id} },
+  return item;
+}
+
+private async findOrCreateItem(payload: CreateItemDto, file: Express.Multer.File): Promise<Item> {
+  // Try to find existing item
+  if (payload.itemId) {
+    const existingItem = await this.itemsRepository.findOneBy({ id: payload.itemId });
+    if (existingItem) return existingItem;
+  } else {
+    const existingItem = await this.itemsRepository.findOne({
+      where: {
+        name: payload.name,
+        category: { id: payload.categoryId },
+        hasVariations: payload.hasVariation,
+      },
     });
+    if (existingItem) return existingItem;
+  }
+
+  // Create new item
+  const filename = file ? this.uploadService.saveFile(file, FilePaths.ITEMS) : null;
+  
+  return this.itemsRepository.save({
+    name: payload.name,
+    hasVariations: payload.hasVariation,
+    category: { id: payload.categoryId },
+    brand: { id: payload.brandId },
+    thumbnail: filename,
+    description: payload.description,
+  });
+}
+
+private async handleStoreItem(
+  item: Item, 
+  store: Store, 
+  data: { price: number; stock: number }, 
+  variation?: ItemVariation
+) {
+  // For items without variations
+  if (!item.hasVariations) {
+    let storeItem = await this.storeItemRepository.findOne({
+      where: { item: { id: item.id }, store: { id: store.id } },
+    });
+
     if (!storeItem) {
-      let createStoreItem = this.storeItemRepository.create({
+      storeItem = this.storeItemRepository.create({
         item,
         store,
+        price: data.price,
+        stock: data.stock,
+        stockAlert: null,
         createdAt: new Date(),
       });
-      storeItem = await this.storeItemRepository.save(createStoreItem);
-    } 
-
-    // // find existing store item price or create a new one
-    // let existingPrice = await this.storeItemPriceRepository.findOne({
-    //   where: { storeItem: {id: storeItem.id}, variation: {id: variation.id || null} },
-    // });
-
-    // if (existingPrice) {
-    //   existingPrice.price = attr.price;
-    //   existingPrice.stock += attr.stock;
-    //   try {
-    //     await this.storeItemPriceRepository.save(existingPrice);
-    //     return;
-    //   } catch (error) {
-    //     throw new InternalServerErrorException('Failed to update store item price');
-    //   }
-    // }
-
-    let createStoreItemPrice = this.storeItemPriceRepository.create({
-      storeItem,
-      price: attr.price,
-      stock: attr.stock,
-      variation: variation  || null,  
-      availableFrom: new Date(),
-      availableTo: null, 
-    });
-    try {
-      await this.storeItemPriceRepository.save(createStoreItemPrice);
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to save store item price');
+    } else {
+      storeItem.price = data.price;
+      storeItem.stock += data.stock;
     }
 
+    await this.storeItemRepository.save(storeItem);
+    return;
   }
-  
-  async findStoreItemsInStockWithAttributes(storeId: number) {
-  return this.storeItemRepository.find({
+
+  // For items with variations
+  let storeItem = await this.storeItemRepository.findOne({
+    where: { item: { id: item.id }, store: { id: store.id } },
+  });
+
+  if (!storeItem) {
+    storeItem = await this.storeItemRepository.save({
+      item,
+      store,
+      price: null,
+      stock: null,
+      stockAlert: null,
+      createdAt: new Date(),
+    });
+  }
+
+  // Create variation record
+  try {
+    await this.storeItemVariationRepository.save({
+      storeItem,
+      price: data.price,
+      cost: null,
+      stock: data.stock,
+      variation,
+      availableFrom: new Date(),
+      availableTo: null,
+    });
+  } catch (error) {
+    throw new InternalServerErrorException('Failed to save store item variation');
+  }
+}
+async findStoreItemsInStockWithAttributes(storeId: number) {
+  const storeItems = await this.storeItemRepository.find({
     where: {
       store: { id: storeId },
-      prices: {
+      storeItemVariation: {
         stock: MoreThan(0),
       },
     },
     relations: [
       'item',
-      'prices',
-      'prices.variation',
-      'prices.variation.attributeValues',
-      'prices.variation.attributeValues.attribute',
+      'storeItemVariation',
+      'storeItemVariation.variation',
+      'storeItemVariation.variation.attributeValues',
+      'storeItemVariation.variation.attributeValues.attribute',
+      'storeItemVariation.variation.attributeValues.attributeValue',
     ],
   });
+
+  return storeItems.map(storeItem => ({
+    id: storeItem.item.id,
+    name: storeItem.item.name,
+    description: storeItem.item.description,
+    thumbnail: storeItem.item.thumbnail,
+    hasVariations: storeItem.item.hasVariations,
+    basePrice: storeItem.price,
+    variations: storeItem.storeItemVariation.map(v => ({
+      id: v.id,
+      name: v.variation.variationName,
+      price: Number(v.price),
+      stock: v.stock,
+      attributes: v.variation.attributeValues.map(av => ({
+        attributeId: av.attribute.id,
+        attributeName: av.attribute.name  || '',
+        attributeValue: av.attributeValue.value || '',
+        valueId: av.id,
+      })),
+    }))
+  }));
 }
 
+
 async findAvailablePrices(storeItemId: number, variationId?: number) {
-  return this.storeItemPriceRepository.find({
+  return this.storeItemVariationRepository.find({
     relations: {
       storeItem: {
         item: true
       }
-    },
-    where: {
-      storeItem: { id: storeItemId },
-      variation: variationId ? { id: variationId } : null,
-      stock: MoreThan(0),
     },
     order: { price: 'ASC' }, // optional
   });
 }
 
 async findCheapestPrice(storeItemId: number, variationId?: number) {
-  return this.storeItemPriceRepository.findOne({
-    where: {
-      storeItem: { id: storeItemId },
-      variation: variationId ? { id: variationId } : null,
-      stock: MoreThan(0),
-    },
+  return this.storeItemVariationRepository.find({
     order: { price: 'ASC' },
   });
 }
@@ -236,7 +254,7 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
 
     const item = await this.itemsRepository.find({
       where: {storeItem: {store}},
-      relations: ['itemType','brand','category']
+      relations: ['brand','category']
     })
 
     return {
@@ -259,32 +277,42 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
     ]);
 
 
-    return await this.storeItemRepository.find({
+    const res = await this.storeItemRepository.findOne({
       where: {
         item: {id: item.id},
         store: {id: store.id}
       },
-      relations: ['item.itemType','store','itemVariation']
-    })
+      relations: ['store','storeItemVariation','storeItemVariation.variation']
+    });
+    return res;
     }
 
     async updateStoreItem(payload: UpdateStoreItemDto) {
-      const {itemId,storeId,itemVariation,price,stock} = payload;
-      const storeItem = await this.storeItemRepository.findOne({
-        where: {
-          store: { id: storeId },
-          item: { id: itemId },
-          // itemVariation: { sku: itemVariation },
-        },
-      });
+      const {storeItemId,storeItemVariationId,price,stock,isItemHasVariations} = payload;
 
-      if (!storeItem) {
-        throw new NotFoundException(`store item not found`);
+      if (isItemHasVariations) {
+        const storeItemVariation = await this.storeItemVariationRepository.findOne({
+          where: { id: storeItemVariationId },
+        });
+
+        if (!storeItemVariation) {
+          throw new NotFoundException(`Store item variation with ID ${storeItemVariationId} not found`);
+        }
+
+        storeItemVariation.price = price;
+        storeItemVariation.stock = stock;
+
+        return await this.storeItemVariationRepository.save(storeItemVariation);
       }
 
-      // storeItem.price = price;
-      // storeItem.stock = stock;
-
+      const storeItem = await this.storeItemRepository.findOne({
+        where: { id: storeItemId },
+      });
+      if (!storeItem) {
+        throw new NotFoundException(`Store item with ID ${storeItemId} not found`);
+      }
+      storeItem.price = price;
+      storeItem.stock = stock;
       return await this.storeItemRepository.save(storeItem);
     }
 

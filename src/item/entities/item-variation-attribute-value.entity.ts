@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ItemVariation } from "./item-variation.entity";
 import { Attribute } from "./attribute.entity";
 import { AttributeValue } from "./attribute-value.entity";
@@ -9,7 +9,7 @@ export class ItemVariationAttributeValue {
   id: number;
 
   @ManyToOne(() => ItemVariation, variation => variation.attributeValues)
-  variation: ItemVariation;
+  itemVariation: ItemVariation;
 
   @ManyToOne(() => Attribute, attribute => attribute.id)
   attribute: Attribute;

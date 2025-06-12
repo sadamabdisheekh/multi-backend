@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Item } from "./item.entity";
-import { StoreItemPrice } from "src/stores/entities/store-item-price.entity";
+import { StoreItemVariation } from "src/stores/entities/store-item-variation.entity";
 import { ItemVariationAttributeValue } from "./item-variation-attribute-value.entity";
 
 @Entity('item_variations')
@@ -17,10 +17,10 @@ export class ItemVariation {
   @Column()
   variationName: string;
 
-  @OneToMany(() => ItemVariationAttributeValue, vav => vav.variation)
+  @OneToMany(() => ItemVariationAttributeValue, vav => vav.itemVariation)
   attributeValues: ItemVariationAttributeValue[];
   
 
-  @OneToMany(() => StoreItemPrice, price => price.variation)
-  prices: StoreItemPrice[];
+  @OneToMany(() => StoreItemVariation, price => price.variation)
+  prices: StoreItemVariation[];
 }

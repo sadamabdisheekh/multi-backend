@@ -18,6 +18,10 @@ export class AttributeDto {
 
   @IsArray()
   @IsNumber({}, { each: true })
+  attrIds: number[];
+
+  @IsArray()
+  @IsNumber({}, { each: true })
   ids: number[];
 }
 

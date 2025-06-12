@@ -1,7 +1,13 @@
-import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateStoreItemDto {
+
+  @IsNotEmpty()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  isItemHasVariations: boolean;
+
   @IsInt()
   itemId: number;
 
@@ -9,8 +15,12 @@ export class UpdateStoreItemDto {
   storeId: number;
 
   @IsOptional()
-  @IsString()
-  itemVariation: string;
+  @IsNumber()
+  storeItemVariationId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  storeItemId?: number;
 
   @Transform(({ value }) => parseFloat(value))
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Price must be a valid number' })

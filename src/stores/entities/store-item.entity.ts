@@ -4,7 +4,7 @@ import { Item } from 'src/item/entities/item.entity';
 import { ItemVariation } from 'src/item/entities/item-variation.entity';
 import { CartItem } from 'src/cart/entities/cart-item.entity';
 import { OrderItem } from 'src/order/entities/order-item.entity';
-import { StoreItemPrice } from './store-item-price.entity';
+import { StoreItemVariation } from './store-item-variation.entity';
 
 
 @Entity()
@@ -20,8 +20,20 @@ export class StoreItem {
     @JoinColumn({ name: 'itemId' })
     item: Item;
 
-    @OneToMany(() => StoreItemPrice, price => price.storeItem)
-    prices: StoreItemPrice[];
+    @Column('decimal', { precision: 10, scale: 2 ,nullable: true})
+    price: number;
+  
+    @Column('decimal', { precision: 10, scale: 2, nullable: true })
+    cost: number;
+  
+    @Column({nullable: true})
+    stock: number;
+  
+    @Column({ nullable: true })
+    stockAlert: number;
+
+    @OneToMany(() => StoreItemVariation, price => price.storeItem)
+    storeItemVariation: StoreItemVariation[];
 
     @OneToMany(() => CartItem, (cartItem) => cartItem.storeItem)
     cartItem: CartItem[];

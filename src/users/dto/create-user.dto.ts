@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class UserDto {
     userId: number;
@@ -16,7 +16,7 @@ export class UserDto {
     username: string;
 
     @IsOptional()
-    @IsNumber()
+    @IsBoolean()
     isActive: boolean;
     
     dateCreated: Date;
