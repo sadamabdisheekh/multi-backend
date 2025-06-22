@@ -20,10 +20,10 @@ export class StoreItem {
     @JoinColumn({ name: 'itemId' })
     item: Item;
 
-    @Column('decimal', { precision: 10, scale: 2 ,nullable: true})
+    @Column('double', { precision: 10, scale: 2 ,nullable: true})
     price: number;
   
-    @Column('decimal', { precision: 10, scale: 2, nullable: true })
+    @Column('double', { precision: 10, scale: 2, nullable: true })
     cost: number;
   
     @Column({nullable: true})
@@ -32,11 +32,15 @@ export class StoreItem {
     @Column({ nullable: true })
     stockAlert: number;
 
+    @Column({nullable: true})
+    availableStock: number;
+
     @OneToMany(() => StoreItemVariation, price => price.storeItem)
     storeItemVariation: StoreItemVariation[];
 
-    @OneToMany(() => CartItem, (cartItem) => cartItem.storeItem)
-    cartItem: CartItem[];
+    @OneToMany(() => CartItem, cartItem => cartItem.storeItem)
+    cartItems: CartItem[];
+
 
     @OneToMany(() => OrderItem, orderItem => orderItem.storeItem)
     orderItems: OrderItem[];

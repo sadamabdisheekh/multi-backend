@@ -395,8 +395,31 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
   
     return categories;
   }
-
+  
   async getItemsByFilter(filterDto: FindItemsByFilterDto) {
+    const { categoryId, brandId, attributeValueIds} = filterDto;
+    const items = await this.storeItemRepository.find({
+      where: {
+        item: {
+          category: { id: categoryId },
+        },
+      },
+      relations: {
+        item: true,
+        store: true,
+        storeItemVariation: true,
+      },
+      order: {
+        storeItemVariation: {
+          id: 'desc',
+        }
+      },
+
+    });
+    return items;
+  }
+
+  async getItemsByFilter1(filterDto: FindItemsByFilterDto) {
     const { categoryId, brandId, attributeValueIds} = filterDto;
 
 
@@ -427,9 +450,111 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
       relations: {
         item: true,
         store: true,
+        storeItemVariation: true,
+        // storeItemVariation: {
+        //   variation: {
+        //     attributeValues: {
+        //       attribute: true,
+        //       attributeValue: true
+        //     }
+        //   }
+        // },
       }
     })
     return  items;
+  }
+
+  async getItemDetailsByFilter(storeItemId: any) {
+    const storeItem = await this.storeItemRepository.findOne({
+      where: {
+       id: storeItemId,
+      },
+      relations: {
+        store: true,
+        item: {
+          category: true,
+          brand: true,
+          images: true,
+        },
+        storeItemVariation: {
+          variation: {
+            attributeValues: {
+              attribute: true,
+              attributeValue: true
+            }
+          }
+        }
+      },
+      order: {
+        storeItemVariation: {
+          id: 'DESC',
+        }
+      }
+    });
+
+      // Group attributes
+  const attributeMap = new Map<number, {
+    attributeId: number;
+    attributeName: string;
+    values: { valueId: number, attributeValue: string}[];
+  }>();
+
+  for (const v of storeItem.storeItemVariation) {
+    for (const av of v.variation.attributeValues) {
+      const key = av.attribute.id;
+      if (!attributeMap.has(key)) {
+        attributeMap.set(key, {
+          attributeId: key,
+          attributeName: av.attribute.name,
+          values: []
+        });
+      }
+
+      const exists = attributeMap.get(key)!.values.some(val => val.valueId === av.attributeValue.id);
+      if (!exists) {
+        attributeMap.get(key)!.values.push({
+          valueId: av.attributeValue.id,
+          attributeValue: av.attributeValue.value,
+        });
+      }
+    }
+  }
+
+  // List of variations
+  const variations = storeItem.storeItemVariation.map(v => ({
+    id: v.id,
+    price: Number(v.price),
+    stock: v.stock,
+    attributeValueIds: v.variation.attributeValues.map(av => av.attributeValue.id)
+  }));
+    
+
+    const res = {
+    itemId: storeItem.item.id,
+    storeItemId: storeItem.id,
+    name: storeItem.item.name,
+    description: storeItem.item.description,
+    thumbnail: storeItem.item.thumbnail,
+    hasVariations: storeItem.item.hasVariations,
+    basePrice: storeItem.price,
+    stock: storeItem.stock,
+    store: storeItem.store,
+    category: {
+        id: storeItem.item.category.id,
+        name: storeItem.item.category.name,
+      },
+      brand: storeItem.item.brand ? {
+        id: storeItem.item.brand.id,
+        name: storeItem.item.brand.name,
+      }  : null,
+      images: storeItem.item.images.length > 0 ? storeItem.item.images.map(image => ({
+        id: image.id,
+        imageUrl: image.image_url
+      })) : null,
+      attributes: Array.from(attributeMap.values()),
+      variations,
+  }
+  return res;
   }
 
   private flattenCategoryIds(categories: Category[], result: number[] = []): number[] {

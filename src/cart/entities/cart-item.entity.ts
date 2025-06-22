@@ -1,34 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+// cart-item.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn
+} from 'typeorm';
 import { Cart } from './cart.entity';
-import { Item } from 'src/item/entities/item.entity';
-import { Store } from 'src/stores/entities/store.entity';
-import { ItemVariation } from 'src/item/entities/item-variation.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
+import { ItemVariation } from 'src/item/entities/item-variation.entity';
 
-@Entity()
+@Entity('cart_items')
 export class CartItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // @ManyToOne(() => Cart, (cart) => cart.cartItems)
-  // @JoinColumn({name: 'cartId'})
-  // cart: Cart;
-
-  @ManyToOne(() => Cart, cart => cart.cartItems, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Cart, cart => cart.items, { onDelete: 'CASCADE' })
   cart: Cart;
 
-  @ManyToOne(() => StoreItem, storeItem => storeItem.cartItem)
+  @ManyToOne(() => StoreItem, storeProduct => storeProduct.cartItems)
   storeItem: StoreItem;
 
-  @Column()
+  @ManyToOne(() => ItemVariation, { nullable: true })
+  Variation: ItemVariation;
+
+  @Column({ type: 'int' })
   quantity: number;
 
-  @Column()
+  @Column({ type: 'double', precision: 10, scale: 2 })
   price: number;
 
   @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  created_at: Date;
 }

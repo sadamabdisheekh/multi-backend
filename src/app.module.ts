@@ -31,7 +31,7 @@ import { AppDataSource } from 'db/data-source';
     ModulesModule,
     StoresModule,
     ItemModule,
-    // CartModule,
+    CartModule,
     CustomersModule,
     // OrderModule,
     AccessControlModule,

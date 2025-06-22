@@ -7,10 +7,11 @@ import { CartItem } from './entities/cart-item.entity';
 import { UserEntity } from 'src/users/user.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { Customer } from 'src/customers/entities/customer.entity';
+import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
-    Cart,CartItem,Customer,StoreItem
+    Cart,CartItem,Customer,StoreItem,StoreItemVariation
   ])],
   controllers: [CartController],
   providers: [CartService],

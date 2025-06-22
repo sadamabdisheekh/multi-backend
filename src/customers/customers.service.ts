@@ -43,6 +43,7 @@ export class CustomersService {
       username: payload.email,
       password: hashedPassword,
       mobile: payload.mobile,
+      isActive: true,
       userType: {userTypeId: 3}
     });
     const customer = await this.customerRepository.save(createdCustomer);

@@ -4,23 +4,19 @@ import { CartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('cart')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Post('/addtocart')
-  async createCart(@Body() createCartDto: CartDto) {
-    return await this.cartService.create(createCartDto);
+  async createCart(@Body() createCartDto: CartDto,@Request() req:any) {
+    return await this.cartService.create(createCartDto,req.user.id);
   }
-  
-  @UseGuards(JwtAuthGuard)
+
   @Get('/getcartitems')
   findAll(@Request() req:any) {
-    const customer = req.user;
-    if (!customer.customerId) {
-      throw new NotAcceptableException();
-    }
-    return this.cartService.findAll(customer.customeId);
+    return this.  cartService.findAll(req.user.id);
   }
 
 
@@ -39,25 +35,20 @@ export class CartController {
     return this.cartService.remove(+id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  
   @Get('/incrementquantity/:storeItemId')
   async incrementItemQuantity(@Req() req:any,@Param('storeItemId') storeItemId: number) {
-    let customeId = req.user.id;
-    return await this.cartService.incrementItemQuantity(customeId,storeItemId)
+    return await this.cartService.incrementItemQuantity(req.user.id,storeItemId)
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/decrementquantity/:storeItemId')
   async decrementItemQuantity(@Req() req:any,@Param('storeItemId') storeItemId: number) {
-    let customeId = req.user.id;
-    return await this.cartService.decrementItemQuantity(customeId,storeItemId)
+    return await this.cartService.decrementItemQuantity(req.user.id,storeItemId)
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/removecartitem/:storeItemId')
   async removeCartItem(@Req() req:any,@Param('storeItemId') storeItemId: number) {
-    let customeId = req.user.id;
-    const resp = await this.cartService.removeCartItem(customeId,storeItemId)
+    const resp = await this.cartService.removeCartItem(req.user.id,storeItemId)
     return {message: "item removed successfully"};
   }
 }

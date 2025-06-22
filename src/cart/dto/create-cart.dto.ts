@@ -1,10 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNumber, IsNotEmpty } from 'class-validator';
+import { IsInt, IsNumber, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CartDto {
   @IsInt()
   @IsNotEmpty()
-  customerId: number;
+  userId: number;
 
   @IsInt()
   @IsNotEmpty()
@@ -25,4 +25,8 @@ export class CartDto {
   @IsInt()
   @IsNotEmpty()
   storeItemId: number;
+
+  @IsOptional()
+  @IsNumber()
+  itemVariationId?: number; 
 }

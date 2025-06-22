@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { CartItem } from './entities/cart-item.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { Customer } from 'src/customers/entities/customer.entity';
+import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Injectable()
 export class CartService {
@@ -19,40 +20,53 @@ export class CartService {
     private cartItemRepository: Repository<CartItem>,
     @InjectRepository(StoreItem) 
     private storeItemRepository: Repository<StoreItem>,
+    @InjectRepository(StoreItemVariation) 
+    private storeItemVariationRepository: Repository<StoreItemVariation>,
   ) {}
 
-  async create(payload: CartDto) {
-    const customer = await this.customerRepository.findOne({ where: { id: payload.customerId } });
-    if (!customer) {
-      throw new NotFoundException(`User with id ${payload.customerId} not found`);
-    }
-  
-    let cart = await this.cartRepository.findOne({ where: { customer: {id : customer.id} } });
+  async create(payload: CartDto,userId: number) {
+
+    let cart = await this.cartRepository.findOne({ where: { user: {userId},store: {id: payload.storeId} } });
     if (!cart) {
-      cart = await this.cartRepository.save(this.cartRepository.create({ customer }));
+      cart = await this.cartRepository.save(this.cartRepository.create({ 
+        user: { userId },
+        store: { id: payload.storeId },
+      }
+    ));
     }
   
     const storeItem = await this.storeItemRepository.findOne({ 
-      where: { id: payload.storeItemId } 
+      where: { id: payload.storeItemId },
+      relations: ['item']
     });
     if (!storeItem) {
       throw new NotFoundException(`Store item with id ${payload.storeItemId} not found`);
     }
   
-    // Check for an existing cart item for the given store item and variation
     let cartItem = await this.cartItemRepository.findOne({
     where: {
     storeItem: {id: storeItem.id},
-    cart: {cart_id: cart.cart_id} },
+    cart: {id: cart.id} },
     });
+    let availableStock = storeItem.availableStock;
 
-    // if (
-    //   (cartItem && cartItem.quantity > storeItem.availableStock) ||
-    //   (!cartItem && payload.quantity > storeItem.availableStock)
-    // )
-    // {
-    //   throw new NotFoundException('Insufficient stock.');
-    // }
+    if (storeItem.item.hasVariations && payload.itemVariationId) {
+      const variation = await this.storeItemVariationRepository.findOne({
+        where: { id: payload.itemVariationId, storeItem: { id: storeItem.id } },
+      });
+      if (!variation) {
+        throw new NotFoundException(`Variation with id ${payload.itemVariationId} not found for this store item`);
+      }
+      availableStock = variation.availableStock;
+    }
+
+    if (
+      (cartItem && availableStock && cartItem.quantity > availableStock) ||
+      (!cartItem && availableStock && payload.quantity > availableStock)
+    )
+    {
+      throw new NotFoundException('Insufficient stock.');
+    }
   
     if (cartItem) {
       cartItem.quantity += payload.quantity;
@@ -61,6 +75,7 @@ export class CartService {
         price: payload.price,
         quantity: payload.quantity,
         storeItem: storeItem,
+        Variation: payload.itemVariationId ? {id: payload.itemVariationId} : null,
         cart,
       });
     }
@@ -72,9 +87,9 @@ export class CartService {
   async findAll(id: number) {
     // Find the user's cart by userId
     const userCart = await this.cartRepository.findOne({
-      relations: ['customer'],
+      relations: ['user'],
       where: {
-        customer: { id }
+        user: { userId: id}
       }
     });
   
@@ -84,7 +99,7 @@ export class CartService {
   
     const cartItems = await this.cartItemRepository.find({
       relations: ['storeItem.item'],
-      where: { cart: { cart_id: userCart.cart_id } } 
+      where: { cart: { id: userCart.id } } 
     });
   
     return cartItems;
@@ -103,12 +118,12 @@ export class CartService {
     return `This action removes a #${id} cart`;
   }
 
-  async incrementItemQuantity(customerId: number,storeItemId: number) {
+  async incrementItemQuantity(userId: number,storeItemId: number) {
     const cartItem =  await this.cartItemRepository.findOne({
       relations: ['storeItem'],
       where: {
         storeItem: {id: storeItemId},
-        cart: {customer : {id:  customerId}}
+        cart: {user : {userId}}
       }
     });
 
@@ -125,12 +140,12 @@ export class CartService {
     return await this.cartItemRepository.save(cartItem);
   }
 
-  async decrementItemQuantity(customerId: number,storeItemId: number) {
+  async decrementItemQuantity(userId: number,storeItemId: number) {
     const cartItem =  await this.cartItemRepository.findOne({
       relations: ['storeItem'],
       where: {
         storeItem: {id: storeItemId},
-        cart: {customer : {id:  customerId}}
+        cart: {user : {userId}}
       }
     });
 
@@ -143,11 +158,11 @@ export class CartService {
     return await this.cartItemRepository.save(cartItem);
   }
 
-  async removeCartItem(customerId: number,storeItemId: number) {
+  async removeCartItem(userId: number,storeItemId: number) {
     const cartItem =  await this.cartItemRepository.findOne({
       where: {
         storeItem: {id: storeItemId},
-        cart: {customer : {id:  customerId}}
+        cart: {user : {userId}}
       }
     });
 

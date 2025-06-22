@@ -13,14 +13,17 @@ export class StoreItemVariation {
   @ManyToOne(() => ItemVariation, { nullable: true })
   variation: ItemVariation;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('double', { precision: 10, scale: 2,nullable: true })
   price: number;
 
-  @Column('decimal', { precision: 10, scale: 2,nullable: true })
+  @Column('double', { precision: 10, scale: 2,nullable: true })
   cost: number;
 
-  @Column()
+  @Column({nullable: true })
   stock: number;
+
+  @Column({nullable: true})
+  availableStock: number;
 
   @Column({ nullable: true })
   stockAlert: number;

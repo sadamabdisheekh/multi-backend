@@ -4,6 +4,7 @@ import { UserRoles } from "src/access-control/entities/user_roles.entity";
 import { UserPermission } from "src/access-control/entities/user-permission.entity";
 import { CustomerUser } from "src/customers/entities/customer-users.entity";
 import { UserType } from "./user-types.entity";
+import { Cart } from "src/cart/entities/cart.entity";
 
 @Entity('users')
 export class UserEntity extends BaseEntity {
@@ -53,4 +54,8 @@ export class UserEntity extends BaseEntity {
     @ManyToOne(() => UserType, userType => userType.user)
     @JoinColumn({ name: 'userTypeId' })
     userType: UserType;
+
+    @OneToMany(() => Cart, cart => cart.user)
+    carts: Cart[];
+
 }

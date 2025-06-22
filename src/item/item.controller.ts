@@ -19,9 +19,7 @@ export class ItemController {
     @UploadedFile() file: Express.Multer.File,
     @Body('jsondata') jsondata: string 
   ): Promise<any> {
-    // if (!file) {
-    //   throw new BadRequestException('File is not defined');
-    // }
+    
 
     const parsedData = plainToInstance(CreateItemDto, JSON.parse(jsondata));
 
@@ -29,15 +27,18 @@ export class ItemController {
     if (errors.length > 0) {
       throw new BadRequestException(errors);
     }
+
+    if (!file && !parsedData.itemId) {
+      throw new BadRequestException('File is not defined');
+    }
     
     return await this.itemService.createItem(parsedData,file);
   }
 
   @Get('/getitemsinstock')
   async findStoreItemsInStock() {
-    return await this.itemService.findStoreItemsInStockWithAttributes(1);
     try {
-      
+      return await this.itemService.findStoreItemsInStockWithAttributes(1);
     } catch (error) {
       throw new InternalServerErrorException('Failed to retrieve items in stock');
     }
@@ -131,6 +132,13 @@ export class ItemController {
     @Body() filterDto: FindItemsByFilterDto
   ) {
     return await this.itemService.getItemsByFilter(filterDto);
+  }
+
+  @Get('getitemdetailsbyfilter')
+  async getItemDetailsByFilter(
+    @Query('storeItemId') storeItemId: any
+  ) {
+    return await this.itemService.getItemDetailsByFilter(storeItemId);
   }
 
   @Post(':itemId/images')

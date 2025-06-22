@@ -1,20 +1,36 @@
-import { UserEntity } from 'src/users/user.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+// cart.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn
+} from 'typeorm';
+import { Store } from '../../stores/entities/store.entity';
 import { CartItem } from './cart-item.entity';
-import { Customer } from 'src/customers/entities/customer.entity';
+import { UserEntity } from 'src/users/user.entity';
+import { join } from 'path';
 
-
-@Entity()
+@Entity('carts')
 export class Cart {
   @PrimaryGeneratedColumn()
-  cart_id: number;
+  id: number;
 
-  @ManyToOne(() => Customer, customer => customer.carts)
-  @JoinColumn({name: 'customerId'})
-  customer: Customer;
+  @ManyToOne(() => UserEntity, user => user.carts, { nullable: true })
+  @JoinColumn({ name: 'userId'})
+  user: UserEntity;
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.cart)
-  cartItems: CartItem[];
+  @ManyToOne(() => Store, store => store.carts)
+  store: Store;
+
+  @Column({ default: 'active' })
+  status: 'active' | 'ordered' | 'abandoned';
+
+  @OneToMany(() => CartItem, item => item.cart, { cascade: true })
+  items: CartItem[];
 
   @CreateDateColumn()
   created_at: Date;

@@ -3,6 +3,7 @@ import { StoreSchedule } from './store-schedule.entity';
 import { StoreItem } from './store-item.entity';
 import {  UserStore } from 'src/users/user-store.entity';
 import { ZoneEntity } from 'src/modules/entities/zone.entity';
+import { Cart } from 'src/cart/entities/cart.entity';
 
 @Entity('stores')
 export class Store {
@@ -58,5 +59,9 @@ export class Store {
 
   @OneToMany(() => UserStore, userStore => userStore.store)
   userStore: UserStore;
+
+  @OneToMany(() => Cart, cart => cart.store)
+  carts: Cart[];
+
 
 }

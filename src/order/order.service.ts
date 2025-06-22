@@ -48,7 +48,7 @@ export class OrderService {
       }
   
       const cart = await this.cartRepository.findOne({
-        where: { customer: { id: customerId } },
+        where: { user: { userId: customerId } },
         relations: ['customer'],
       });
   
@@ -58,7 +58,7 @@ export class OrderService {
   
 
       const cartItems = await this.cartItemRepository.find({
-        where: { cart: { cart_id: cart.cart_id } },
+        where: { cart: { id: cart.id } },
         relations: ['storeItem'],
       });
   
@@ -103,8 +103,8 @@ export class OrderService {
   
       await this.orderItemRepository.save(orderItems);
   
-      await this.cartItemRepository.delete({ cart: { cart_id: cart.cart_id } });
-      await this.cartRepository.delete({ cart_id: cart.cart_id });
+      await this.cartItemRepository.delete({ cart: { id: cart.id } });
+      await this.cartRepository.delete({ id: cart.id });
   
       return savedOrder;
     } catch (error) {
@@ -139,7 +139,7 @@ export class OrderService {
       }
   
       const cart = await this.cartRepository.findOne({
-        where: { customer: { id: customerId } },
+        where: { user: { userId: customerId } },
         relations: ['customer'],
       });
   
@@ -148,7 +148,7 @@ export class OrderService {
       }
   
       const cartItems = await this.cartItemRepository.find({
-        where: { cart: { cart_id: cart.cart_id } },
+        where: { cart: { id: cart.id } },
         relations: ['storeItem'],
       });
   
@@ -214,10 +214,10 @@ export class OrderService {
   
       // Clear the cart
       await queryRunner.manager.delete(this.cartItemRepository.target, {
-        cart: { cart_id: cart.cart_id },
+        cart: { cart_id: cart.id },
       });
       await queryRunner.manager.delete(this.cartRepository.target, {
-        cart_id: cart.cart_id,
+        cart_id: cart.id,
       });
   
       await queryRunner.commitTransaction();
