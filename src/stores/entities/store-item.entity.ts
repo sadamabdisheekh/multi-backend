@@ -3,7 +3,7 @@ import { Store } from './store.entity';
 import { Item } from 'src/item/entities/item.entity';
 import { ItemVariation } from 'src/item/entities/item-variation.entity';
 import { CartItem } from 'src/cart/entities/cart-item.entity';
-import { OrderItem } from 'src/order/entities/order-item.entity';
+import { OrderItem } from 'src/order/entities/order_items.entity';
 import { StoreItemVariation } from './store-item-variation.entity';
 
 
@@ -28,6 +28,7 @@ export class StoreItem {
   
     @Column({nullable: true})
     stock: number;
+    
   
     @Column({ nullable: true })
     stockAlert: number;

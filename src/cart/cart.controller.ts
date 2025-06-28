@@ -11,7 +11,7 @@ export class CartController {
 
   @Post('/addtocart')
   async createCart(@Body() createCartDto: CartDto,@Request() req:any) {
-    return await this.cartService.create(createCartDto,req.user.id);
+    return await this.cartService.create(createCartDto,req.user.userId);
   }
 
   @Get('/getcartitems')

@@ -140,12 +140,14 @@ private async handleStoreItem(
         store,
         price: data.price,
         stock: data.stock,
+        availableStock: data.stock,
         stockAlert: null,
         createdAt: new Date(),
       });
     } else {
       storeItem.price = data.price;
       storeItem.stock += data.stock;
+      storeItem.availableStock += data.stock;
     }
 
     await this.storeItemRepository.save(storeItem);
@@ -164,6 +166,7 @@ private async handleStoreItem(
       price: null,
       stock: null,
       stockAlert: null,
+      availableStock: null,
       createdAt: new Date(),
     });
   }
@@ -175,6 +178,7 @@ private async handleStoreItem(
       price: data.price,
       cost: null,
       stock: data.stock,
+      availableStock: data.stock,
       variation,
       availableFrom: new Date(),
       availableTo: null,

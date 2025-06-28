@@ -28,5 +28,5 @@ export class CartDto {
 
   @IsOptional()
   @IsNumber()
-  itemVariationId?: number; 
+  variationId?: number; 
 }

@@ -46,16 +46,17 @@ export class CartService {
     let cartItem = await this.cartItemRepository.findOne({
     where: {
     storeItem: {id: storeItem.id},
+    storeItemVariation: {id: payload.variationId ? payload.variationId : null},
     cart: {id: cart.id} },
     });
     let availableStock = storeItem.availableStock;
 
-    if (storeItem.item.hasVariations && payload.itemVariationId) {
+    if (storeItem.item.hasVariations && payload.variationId) {
       const variation = await this.storeItemVariationRepository.findOne({
-        where: { id: payload.itemVariationId, storeItem: { id: storeItem.id } },
+        where: { id: payload.variationId, storeItem: { id: storeItem.id } },
       });
       if (!variation) {
-        throw new NotFoundException(`Variation with id ${payload.itemVariationId} not found for this store item`);
+        throw new NotFoundException(`Variation with id ${payload.variationId} not found for this store item`);
       }
       availableStock = variation.availableStock;
     }
@@ -75,7 +76,7 @@ export class CartService {
         price: payload.price,
         quantity: payload.quantity,
         storeItem: storeItem,
-        Variation: payload.itemVariationId ? {id: payload.itemVariationId} : null,
+        storeItemVariation: payload.variationId ? {id: payload.variationId} : null,
         cart,
       });
     }
@@ -84,26 +85,60 @@ export class CartService {
   }
   
 
-  async findAll(id: number) {
-    // Find the user's cart by userId
+  async findAll(userId: number) {
+    // Step 1: Get cart
     const userCart = await this.cartRepository.findOne({
       relations: ['user'],
-      where: {
-        user: { userId: id}
-      }
+      where: { user: { userId } }
     });
   
-  if (!userCart) {
-      return [];
-    }
+    if (!userCart) return [];
   
+    // Step 2: Get cart items
     const cartItems = await this.cartItemRepository.find({
-      relations: ['storeItem.item'],
-      where: { cart: { id: userCart.id } } 
+      relations: {
+        storeItem: { item: true },
+        storeItemVariation: {
+          variation: {
+            attributeValues: {
+              attribute: true,
+              attributeValue: true
+            }
+          }
+        }
+      },
+      where: { cart: { id: userCart.id } }
     });
   
-    return cartItems;
+    // Step 3: Format result
+    const formatted = cartItems.map(item => {
+      const variation = item.storeItemVariation?.variation;
+      const attributeList = variation?.attributeValues.map(av => ({
+        name: av.attribute.name,
+        value: av.attributeValue.value,
+      })) || [];
+  
+      const displayName = attributeList.map(a => a.value).join(' - ');
+  
+      return {
+        id: item.id,
+        storeItem: item.storeItem,
+        quantity: item.quantity,
+        price: item.price,
+        variation: variation
+          ? {
+              id: variation.id,
+              sku: variation.sku,
+              attributes: attributeList,
+              displayName,
+            }
+          : null,
+      };
+    });
+  
+    return formatted;
   }
+  
   
 
   findOne(id: number) {

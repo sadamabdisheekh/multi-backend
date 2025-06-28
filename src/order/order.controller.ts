@@ -1,26 +1,26 @@
-import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards, Query } from '@nestjs/common';
 import { OrderService } from './order.service';
 
 import { JwtAuthGuard } from 'src/auth/guards/auth.guard';
 import { SearchOrdersDto } from './dto/search_order.Dto';
 
-
+@UseGuards(JwtAuthGuard)
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @UseGuards(JwtAuthGuard)
+ 
   @Post('/createorder')
   async create(
     @Req() req:any,
     @Body() payload: any
   )  {
-    const customerId = req.user.customerId;
-    if (!customerId) {
+    const userId = req.user.userId;
+    if (!userId) {
       throw new Error('Customer ID is required to create an order.');
     }
 
-    await this.orderService.createOrder(customerId,payload);
+    await this.orderService.createOrder(userId,payload);
     return {message : "order created successfully"};
   }
 
@@ -29,13 +29,11 @@ export class OrderController {
     return await this.orderService.findPaymentMethods()
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/paymentstatuses')
   async findPaymentStatuses() {
     return await this.orderService.findPaymentStatuses();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/orderstatuses')
   async findOrderStatuses() {
     return await this.orderService.findOrderStatuses();
@@ -44,5 +42,15 @@ export class OrderController {
   @Post('search')
   async searchOrders(@Body() searchOrdersDto: SearchOrdersDto) {
     return this.orderService.searchOrders(searchOrdersDto);
+  }
+
+  @Get('/userorders')
+  async findUserOrdes(@Req() req: any) {
+    return await this.orderService.findUserOrdes(req.user.userId);
+  }
+
+  @Get('/userorderdetails')
+  async getUserOrderDetails(@Req() req: any,@Query('orderId') orderId: number) {
+    return await this.orderService.getUserOrderDetails(req.user.userId,orderId);
   }
 }

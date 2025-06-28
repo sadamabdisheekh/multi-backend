@@ -9,6 +9,7 @@ import {
 import { Cart } from './cart.entity';
 import { StoreItem } from 'src/stores/entities/store-item.entity';
 import { ItemVariation } from 'src/item/entities/item-variation.entity';
+import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
 
 @Entity('cart_items')
 export class CartItem {
@@ -21,8 +22,8 @@ export class CartItem {
   @ManyToOne(() => StoreItem, storeProduct => storeProduct.cartItems)
   storeItem: StoreItem;
 
-  @ManyToOne(() => ItemVariation, { nullable: true })
-  Variation: ItemVariation;
+  @ManyToOne(() => StoreItemVariation, { nullable: true })
+  storeItemVariation: StoreItemVariation;
 
   @Column({ type: 'int' })
   quantity: number;

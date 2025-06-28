@@ -1,20 +1,21 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
-import { Order } from './order.entity';
+import { Order } from './orders.entity';
 
 @Entity('payment_methods')
 export class PaymentMethod {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 50 })
-  name: string;
+  @Column()
+  name: string; // e.g., 'Cash on Delivery', 'Credit Card', 'PayPal'
 
-  @Column({ type: 'boolean', default: true })
-  status: boolean;
+  @Column({ nullable: true })
+  description?: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  dateCreated: Date;
+  @Column({ default: true })
+  isActive: boolean;
 
   @OneToMany(() => Order, order => order.paymentMethod)
   orders: Order[];
 }
+

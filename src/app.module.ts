@@ -33,7 +33,7 @@ import { AppDataSource } from 'db/data-source';
     ItemModule,
     CartModule,
     CustomersModule,
-    // OrderModule,
+    OrderModule,
     AccessControlModule,
     SeederModule,
   ],
