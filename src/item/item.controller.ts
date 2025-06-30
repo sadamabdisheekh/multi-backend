@@ -119,12 +119,13 @@ export class ItemController {
   }
 
   @Get('getcategoryhierarchy')
-  async getCategoryHierarchy(@Query('categoryId') categoryId: any) {
+  async getCategoryHierarchy(@Query('categoryId') categoryId: any,@Query('moduleId') moduleId: any) {
     const parsedCategoryId = categoryId && categoryId != 'null' ? Number(categoryId) : null;
+    const parsedModuleId = moduleId && moduleId != 'null' ? Number(moduleId) : null;
     if (categoryId && isNaN(parsedCategoryId)) {
       throw new BadRequestException('Invalid categoryId. It must be a number or empty.');
     }
-    return await this.itemService.getCategoryHierarchy(parsedCategoryId);
+    return await this.itemService.getCategoryHierarchy(parsedCategoryId,parsedModuleId);
   }
 
   @Post('getitemsbyfilter')

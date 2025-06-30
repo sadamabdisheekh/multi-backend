@@ -386,24 +386,31 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
     })
   }
 
-  async getCategoryHierarchy(parent: number | null = null): Promise<Category[]> {
-    const queryBuilder = this.categoryRepository.createQueryBuilder('category')
-      .leftJoinAndSelect('category.children', 'children');
-  
-    if (parent === null) {
-      queryBuilder.where('category.parentId IS NULL');
-    } else {
-      queryBuilder.where('category.parentId = :parentId', { parentId: parent });
-    }
-  
-    const categories = await queryBuilder.getMany();
-  
-    for (const category of categories) {
-      category.children = await this.getCategoryHierarchy(category.id); // Recursively load children
-    }
-  
-    return categories;
+async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): Promise<Category[]> {
+  const query = this.categoryRepository.createQueryBuilder('category')
+    .leftJoinAndSelect('category.moduleCategories', 'moduleCategory')
+    .leftJoinAndSelect('category.children', 'children');
+
+  if (moduleId) {
+    query.andWhere('moduleCategory.moduleId = :moduleId', { moduleId });
   }
+
+  if (parentId === null) {
+    query.andWhere('category.parentId IS NULL');
+  } else {
+    query.andWhere('category.parentId = :parentId', { parentId });
+  }
+
+  const categories = await query.getMany();
+
+  // Recursively load children
+  for (const category of categories) {
+    category.children = await this.getCategoryHierarchy(category.id);
+  }
+
+  return categories;
+}
+
   
   async getItemsByFilter(filterDto: FindItemsByFilterDto) {
     const { categoryId, brandId, attributeValueIds} = filterDto;
