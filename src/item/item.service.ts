@@ -371,8 +371,13 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
 
   }
 
-  async getCategories() {
-    return await this.categoryRepository.find()
+  async getParentCategories() {
+    return await this.categoryRepository.find({
+      where: {
+        parentId: null,
+        isActive: true
+      }
+    })
   }
   // categories
   async getAttributesWithValue() {

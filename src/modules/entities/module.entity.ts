@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { ModuleCategory } from './module-category.entity';
 
 @Entity('modules')
 export class ModuleEntity {
@@ -26,4 +27,7 @@ export class ModuleEntity {
 
     @Column({ nullable: true })
     updated_at: Date;
+
+    @OneToMany(() => ModuleCategory, (mc) => mc.module)
+    moduleCategories: ModuleCategory[];
 }

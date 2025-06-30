@@ -100,7 +100,7 @@ export class ItemController {
 
   @Get('/getcategories')
   async getCategories(): Promise<any> {
-   return await this.itemService.getCategories();
+   return await this.itemService.getParentCategories();
   }
 
   @Patch('updatecategory/:id')

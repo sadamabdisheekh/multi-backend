@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany, CreateDateColumn, ManyToOne, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { Item } from './item.entity';
+import { ModuleCategory } from 'src/modules/entities/module-category.entity';
 
 @Entity()
 @Unique(["name"])
@@ -34,4 +35,7 @@ export class Category {
 
   @OneToMany(() => Item, item => item.category)
   items: Item[];
+
+  @OneToMany(() => ModuleCategory, (mc) => mc.category)
+  moduleCategories: ModuleCategory[];
 }

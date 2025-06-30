@@ -53,4 +53,22 @@ export class ModulesController {
     return await this.modulesService.getZones();
   }
 
+  @Post('add-module-category')
+  async addModuleCategory(@Body() payload: any) {
+    return await this.modulesService.addModuleCategory(payload);
+  }
+
+  @Patch('update-module-category/:id')
+  async updateModuleCategory(
+    @Param('id') id: number,
+    @Body() payload: any
+  ) {
+    return await this.modulesService.updateModuleCategory(id, payload);
+  }
+
+  @Get('module-categories/:moduleId')
+  async getModuleCategories(@Param('moduleId') moduleId: number) {
+    return await this.modulesService.getModuleCategories(moduleId);
+  }
+
 }

@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { FilePaths } from 'common/enum';
 import { UploadService } from 'common/UploadService';
 import { ZoneEntity } from './entities/zone.entity';
+import { ModuleCategory } from './entities/module-category.entity';
 
 @Injectable()
 export class ModulesService {
@@ -16,6 +17,8 @@ export class ModulesService {
     private readonly uploadService: UploadService, 
     @InjectRepository(ZoneEntity)
     private readonly zoneRepository: Repository<ZoneEntity>,
+    @InjectRepository(ModuleCategory)
+    private readonly moduleCategoryRepository: Repository<ModuleCategory>
   ) {}
 
   async create(file: Express.Multer.File, payload: CreateModuleDto) {
@@ -93,4 +96,41 @@ export class ModulesService {
       where: { status: true }
     });
   }
+
+  async addModuleCategory(payload: any) {
+    const { categoryId,moduleId, isActive } = payload;
+    const isCategoryExist = await this.moduleCategoryRepository.findOneBy({ 
+      category: {id: categoryId},
+      module: {id: moduleId} 
+    });
+    if (isCategoryExist) {
+      throw new NotAcceptableException('This module category already exists');
+    }
+    const moduleCategory = this.moduleCategoryRepository.create({
+      category: { id: categoryId },
+      module: { id: moduleId },
+      isActive: isActive,
+    });
+    return await this.moduleCategoryRepository.save(moduleCategory);
+  } 
+
+  updateModuleCategory(id: number, payload: any) {
+    const { categoryId, moduleId, isActive } = payload;
+    return this.moduleCategoryRepository.update(id, {
+      category: { id: categoryId },
+      module: { id: moduleId },
+      isActive: isActive,
+    });
+  }
+
+  async getModuleCategories(moduleId: number) {
+    const module = await this.moduleCategoryRepository.find({
+      relations: ['category', 'module'],
+      where: { module: { id: moduleId } }
+    });
+    return module;
+  }
+
+  
+  
 }
