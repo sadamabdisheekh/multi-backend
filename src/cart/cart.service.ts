@@ -155,7 +155,7 @@ export class CartService {
 
   async incrementItemQuantity(userId: number,storeItemId: number) {
     const cartItem =  await this.cartItemRepository.findOne({
-      relations: ['storeItem'],
+      relations: ['storeItem','storeItemVariation'],
       where: {
         storeItem: {id: storeItemId},
         cart: {user : {userId}}
@@ -166,9 +166,12 @@ export class CartService {
       throw new NotFoundException(`this cart with store item id ${storeItemId} not found`);
     }
 
-    // if (cartItem.quantity >= cartItem.storeItem.availableStock) {
-    //   throw new NotFoundException('Insufficient stock.');
-    // }
+    const availableStock = cartItem.storeItemVariation?.availableStock ?? cartItem.storeItem.availableStock;
+
+    if (cartItem.quantity >= availableStock) {
+      throw new NotFoundException('Insufficient stock.');
+    }
+
 
     cartItem.quantity += 1;
 
