@@ -15,6 +15,7 @@ import { OrderModule } from './order/order.module';
 import { AccessControlModule } from './access-control/access-control.module';
 import { SeederModule } from './seeder/seeder.module';
 import { AppDataSource } from 'db/data-source';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AppDataSource } from 'db/data-source';
     OrderModule,
     AccessControlModule,
     SeederModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
