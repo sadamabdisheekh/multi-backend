@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class DeliveryType {
+export class ParcelTypes {
     @PrimaryGeneratedColumn()
     id: number;
 

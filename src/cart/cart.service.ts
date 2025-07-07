@@ -61,13 +61,13 @@ export class CartService {
       availableStock = variation.availableStock;
     }
 
-    if (
-      (cartItem && availableStock && cartItem.quantity > availableStock) ||
-      (!cartItem && availableStock && payload.quantity > availableStock)
-    )
-    {
+    const requestedQuantity = cartItem ? cartItem.quantity : payload.quantity;
+
+    if (availableStock != null && requestedQuantity > availableStock) {
       throw new NotFoundException('Insufficient stock.');
     }
+
+
   
     if (cartItem) {
       cartItem.quantity += payload.quantity;
@@ -80,7 +80,7 @@ export class CartService {
         cart,
       });
     }
-  
+   
     return await this.cartItemRepository.save(cartItem);
   }
   

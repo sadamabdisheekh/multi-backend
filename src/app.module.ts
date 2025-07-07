@@ -16,7 +16,7 @@ import { AccessControlModule } from './access-control/access-control.module';
 import { SeederModule } from './seeder/seeder.module';
 import { AppDataSource } from 'db/data-source';
 import { AddressModule } from './address/address.module';
-import { DeliveryModule } from './delivery/delivery.module';
+import { ParcelModule } from './parcel/parcel.module';
 
 @Module({
   imports: [
@@ -39,7 +39,7 @@ import { DeliveryModule } from './delivery/delivery.module';
     AccessControlModule,
     SeederModule,
     AddressModule,
-    DeliveryModule,
+    ParcelModule,
   ],
   controllers: [AppController],
   providers: [AppService],
