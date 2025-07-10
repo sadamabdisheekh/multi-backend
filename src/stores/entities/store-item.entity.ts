@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn, OneToMany, JoinColumn, OneToOne } from 'typeorm';
 import { Store } from './store.entity';
 import { Item } from 'src/item/entities/item.entity';
 import { ItemVariation } from 'src/item/entities/item-variation.entity';
@@ -16,7 +16,7 @@ export class StoreItem {
     @JoinColumn({ name: 'storeId' })
     store: Store;
 
-    @ManyToOne(() => Item, item => item.storeItem)
+    @OneToOne(() => Item, item => item.storeItem)
     @JoinColumn({ name: 'itemId' })
     item: Item;
 

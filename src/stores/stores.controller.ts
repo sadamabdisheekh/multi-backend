@@ -27,8 +27,8 @@ export class StoresController {
   }
 
   @Get('/all')
-  findAll() {
-    return this.storesService.findAll();
+  findAll(@Req() req: any) {
+    return this.storesService.findAll(req.user);
   }
 
   @Get('/findStoreScheduler')

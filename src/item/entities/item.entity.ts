@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn, OneToOne } from 'typeorm';
 import { Brand } from './brand.entity';
 import { ItemVariation } from './item-variation.entity';
 import { Category } from './category.entity';
@@ -34,7 +34,7 @@ export class Item {
     @ManyToOne(() => Brand, brand => brand.items)
     brand: Brand;
 
-    @OneToMany(() => StoreItem, storeItem => storeItem.item)
+    @OneToOne(() => StoreItem, storeItem => storeItem.item)
     storeItem: StoreItem[];
 
     @OneToMany(() => ItemVariation, (itemVariation) => itemVariation.item)

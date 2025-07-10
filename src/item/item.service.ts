@@ -171,9 +171,16 @@ private async handleStoreItem(
     });
   }
 
-  // Create variation record
-  try {
-    await this.storeItemVariationRepository.save({
+  let storeItemVariation = await this.storeItemVariationRepository.findOneBy({
+    variation: {id: variation.id},
+    storeItem: {id: storeItem.id}
+  });
+
+  if (storeItemVariation) {
+    storeItemVariation.price = data.price;
+    storeItemVariation.stock = data.stock;
+  }else {
+    storeItemVariation = this.storeItemVariationRepository.create({
       storeItem,
       price: data.price,
       cost: null,
@@ -182,10 +189,11 @@ private async handleStoreItem(
       variation,
       availableFrom: new Date(),
       availableTo: null,
-    });
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to save store item variation');
+    })
   }
+
+
+    await this.storeItemVariationRepository.save(storeItemVariation);
 }
 async findStoreItemsInStockWithAttributes(storeId: number) {
   const storeItems = await this.storeItemRepository.find({
@@ -633,14 +641,25 @@ async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): P
 
   // use like
   async getItemByName(name: string) {
-    return await this.itemsRepository.find({
+    const item =  await this.itemsRepository.find({
       relations: {
         category: true,
         itemUnit: true,
         brand: true,
+        storeItem: {
+          storeItemVariation: {
+            variation: {
+              attributeValues: {
+                attribute: true,
+                attributeValue: true
+              }
+            }
+          }
+        }
       },
       where: {name: Like(`%${name}%`)}
-    })
+    });
+    return item;
   }
     
 }

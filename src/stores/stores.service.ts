@@ -65,7 +65,18 @@ export class StoresService {
 
   }
 
-  async findAll() {
+  async findAll(user: any) {
+    if (user.userStore && user.userStore != null) {
+      return await this.storeRepository.find({
+        
+        relations: ['userStore','zone'],
+        where: {
+          userStore:{
+            user: {userId : user.userId}
+          }
+        }
+      })
+    }
     return await this.storeRepository.find({
       relations: ['zone']
     });
