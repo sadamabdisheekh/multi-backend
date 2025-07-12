@@ -180,8 +180,8 @@ export class ItemController {
 
   // get item by name
   @Get('getitembyname')
-  async getItemByName(@Query('itemName') itemName: string): Promise<any> {
-    const items =  await this.itemService.getItemByName(itemName);
+  async getItemByNameAndStore(@Query('itemName') itemName: string,@Query('storeId') storeId: number): Promise<any> {
+    const items =  await this.itemService.getItemByName(itemName,storeId);
     return items;
   }
 }

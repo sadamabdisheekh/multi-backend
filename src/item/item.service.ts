@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { AttributeDto, CreateItemDto } from './dto/create-item.dto';
+import { CreateItemDto } from './dto/create-item.dto';
 import { Item } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {  In, Like, MoreThan, Repository } from 'typeorm';
+import { In, Like, MoreThan, Repository } from 'typeorm';
 import { Store } from 'src/stores/entities/store.entity';
 import { Brand } from './entities/brand.entity';
 import { Category } from './entities/category.entity';
@@ -17,244 +17,267 @@ import { FindItemsByFilterDto } from './dto/find-items-by-filter.dto';
 import { ItemImage } from './entities/item-images.entity';
 import { ItemVariationAttributeValue } from './entities/item-variation-attribute-value.entity';
 import { StoreItemVariation } from 'src/stores/entities/store-item-variation.entity';
+import * as _ from 'lodash';
 
 @Injectable()
 export class ItemService {
-constructor(
-  @InjectRepository(Item)
-  private itemsRepository: Repository<Item>,
-  @InjectRepository(Store)
-  private readonly storeRepository: Repository<Store>,
-  @InjectRepository(ItemVariation)
-  private readonly itemVariationRepository: Repository<ItemVariation>,
-  @InjectRepository(ItemVariationAttributeValue)
-  private readonly itemVariationAttributeValueRepository: Repository<ItemVariationAttributeValue>,
-  @InjectRepository(Brand)
-  private readonly brandRepository: Repository<Brand>,
-  @InjectRepository(Category)
-  private readonly categoryRepository: Repository<Category>,
-  @InjectRepository(StoreItem)
-  private readonly storeItemRepository: Repository<StoreItem>,
-  @InjectRepository(Attribute)
-  private readonly attributeRepository: Repository<Attribute>,
-  private readonly uploadService: UploadService, 
-  @InjectRepository(ItemImage)
-  private readonly itemImagesRepository: Repository<ItemImage>,
-  @InjectRepository(StoreItemVariation)
-  private readonly storeItemVariationRepository: Repository<StoreItemVariation>
+  constructor(
+    @InjectRepository(Item)
+    private itemsRepository: Repository<Item>,
+    @InjectRepository(Store)
+    private readonly storeRepository: Repository<Store>,
+    @InjectRepository(ItemVariation)
+    private readonly itemVariationRepository: Repository<ItemVariation>,
+    @InjectRepository(ItemVariationAttributeValue)
+    private readonly itemVariationAttributeValueRepository: Repository<ItemVariationAttributeValue>,
+    @InjectRepository(Brand)
+    private readonly brandRepository: Repository<Brand>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(StoreItem)
+    private readonly storeItemRepository: Repository<StoreItem>,
+    @InjectRepository(Attribute)
+    private readonly attributeRepository: Repository<Attribute>,
+    private readonly uploadService: UploadService,
+    @InjectRepository(ItemImage)
+    private readonly itemImagesRepository: Repository<ItemImage>,
+    @InjectRepository(StoreItemVariation)
+    private readonly storeItemVariationRepository: Repository<StoreItemVariation>
 
-){}
+  ) { }
 
-async createItem(payload: CreateItemDto, file: Express.Multer.File) {
-  // 1. Validate store exists
-  const store = await this.storeRepository.findOneBy({ id: payload.storeId });
-  if (!store) {
-    throw new NotFoundException(`Store with ID ${payload.storeId} does not exist.`);
+  async createItem(payload: CreateItemDto, file: Express.Multer.File) {
+    // 1. Validate store exists
+    const store = await this.storeRepository.findOneBy({ id: payload.storeId });
+    if (!store) {
+      throw new NotFoundException(`Store with ID ${payload.storeId} does not exist.`);
+    }
+
+
+
+    // 2. Find or create item
+    const item = await this.findOrCreateItem(payload, file);
+
+
+    if (payload.hasVariation && payload.attribute) {
+      let storeItem = await this.storeItemRepository.findOne({
+        where: { store: { id: payload.storeId }, item: { id: item.id } },
+        relations: { storeItemVariation: { variation: true } }
+      });
+      const existingVariations = await this.itemVariationRepository.find({
+        where: { item: { id: item.id } },
+        relations: { attributeValues: true }
+      });
+
+      const newVariationKeys = payload.attribute.map(attr => attr.variation);
+
+      const toDelete = _.filter(existingVariations, (existingVar) => {
+        return !newVariationKeys.includes(existingVar.sku);
+      });
+
+      for (const variation of toDelete) {
+        await this.storeItemVariationRepository.delete({ variation: { id: variation.id }, storeItem: { id: storeItem.id } });
+        await this.itemVariationAttributeValueRepository.delete({ itemVariation: { id: variation.id } });
+        await this.itemVariationRepository.delete({ id: variation.id });
+      }
+      for (const attr of payload.attribute) {
+        // Find or create variation
+        let variation = await this.itemVariationRepository.findOneBy({
+          sku: attr.variation,
+          item: { id: item.id }
+        });
+
+        if (!variation) {
+          variation = await this.itemVariationRepository.save(
+            this.itemVariationRepository.create({
+              sku: attr.variation,
+              item,
+              variationName: attr.variation
+            })
+          );
+
+          // Create variation attributes for new variations
+          const attributeValues = attr.attrIds.map((id, index) => ({
+            itemVariation: variation,
+            attribute: { id },
+            attributeValue: { id: attr.ids[index] },
+          }));
+          await this.itemVariationAttributeValueRepository.save(attributeValues);
+        }
+
+        // Create store item variation
+        await this.handleStoreItem(item, store, attr, variation);
+      }
+    } else {
+      // Handle simple item without variations
+      await this.handleStoreItem(item, store, payload);
+    }
+
+    return item;
   }
 
-  // 2. Find or create item
-  const item = await this.findOrCreateItem(payload, file);
-
-  
-  if (payload.hasVariation && payload.attribute) {
-    for (const attr of payload.attribute) {
-      // Find or create variation
-      let variation = await this.itemVariationRepository.findOneBy({ 
-        sku: attr.variation, 
-        item: { id: item.id }  
+  private async findOrCreateItem(payload: CreateItemDto, file: Express.Multer.File): Promise<Item> {
+    // Try to find existing item
+    if (payload.itemId) {
+      const existingItem = await this.itemsRepository.findOneBy({ id: payload.itemId });
+      if (existingItem) return existingItem;
+    } else {
+      const existingItem = await this.itemsRepository.findOne({
+        where: {
+          name: payload.name,
+          category: { id: payload.categoryId },
+          hasVariations: payload.hasVariation,
+        },
       });
-      
-      if (!variation) {
-        variation = await this.itemVariationRepository.save(
-          this.itemVariationRepository.create({ 
-            sku: attr.variation, 
-            item,
-            variationName: attr.variation 
-          })
-        );
+      if (existingItem) return existingItem;
+    }
 
-        // Create variation attributes for new variations
-        const attributeValues = attr.attrIds.map((id,index) => ({
-          itemVariation: variation,
-          attribute: {id},
-          attributeValue: { id: attr.ids[index]  },
-        }));
-        await this.itemVariationAttributeValueRepository.save(attributeValues);
+    // Create new item
+    const filename = file ? this.uploadService.saveFile(file, FilePaths.ITEMS) : null;
+
+    return this.itemsRepository.save({
+      name: payload.name,
+      hasVariations: payload.hasVariation,
+      category: { id: payload.categoryId },
+      brand: { id: payload.brandId },
+      thumbnail: filename,
+      description: payload.description,
+    });
+  }
+
+  private async handleStoreItem(
+    item: Item,
+    store: Store,
+    data: { price: number; stock: number },
+    variation?: ItemVariation
+  ) {
+    // For items without variations
+    if (!item.hasVariations) {
+      let storeItem = await this.storeItemRepository.findOne({
+        where: { item: { id: item.id }, store: { id: store.id } },
+      });
+
+      if (!storeItem) {
+        storeItem = this.storeItemRepository.create({
+          item,
+          store,
+          price: data.price,
+          stock: data.stock,
+          availableStock: data.stock,
+          stockAlert: null,
+          createdAt: new Date(),
+        });
+      } else {
+        storeItem.price = data.price;
+        storeItem.stock += data.stock;
+        storeItem.availableStock += data.stock;
       }
 
-      // Create store item variation
-      await this.handleStoreItem(item, store, attr, variation);
+      await this.storeItemRepository.save(storeItem);
+      return;
     }
-  } else {
-    // Handle simple item without variations
-    await this.handleStoreItem(item, store, payload);
-  }
-  
-  return item;
-}
 
-private async findOrCreateItem(payload: CreateItemDto, file: Express.Multer.File): Promise<Item> {
-  // Try to find existing item
-  if (payload.itemId) {
-    const existingItem = await this.itemsRepository.findOneBy({ id: payload.itemId });
-    if (existingItem) return existingItem;
-  } else {
-    const existingItem = await this.itemsRepository.findOne({
-      where: {
-        name: payload.name,
-        category: { id: payload.categoryId },
-        hasVariations: payload.hasVariation,
-      },
-    });
-    if (existingItem) return existingItem;
-  }
-
-  // Create new item
-  const filename = file ? this.uploadService.saveFile(file, FilePaths.ITEMS) : null;
-  
-  return this.itemsRepository.save({
-    name: payload.name,
-    hasVariations: payload.hasVariation,
-    category: { id: payload.categoryId },
-    brand: { id: payload.brandId },
-    thumbnail: filename,
-    description: payload.description,
-  });
-}
-
-private async handleStoreItem(
-  item: Item, 
-  store: Store, 
-  data: { price: number; stock: number }, 
-  variation?: ItemVariation
-) {
-  // For items without variations
-  if (!item.hasVariations) {
+    // For items with variations
     let storeItem = await this.storeItemRepository.findOne({
       where: { item: { id: item.id }, store: { id: store.id } },
     });
 
     if (!storeItem) {
-      storeItem = this.storeItemRepository.create({
+      storeItem = await this.storeItemRepository.save({
         item,
         store,
-        price: data.price,
-        stock: data.stock,
-        availableStock: data.stock,
+        price: null,
+        stock: null,
         stockAlert: null,
+        availableStock: null,
         createdAt: new Date(),
       });
-    } else {
-      storeItem.price = data.price;
-      storeItem.stock += data.stock;
-      storeItem.availableStock += data.stock;
     }
 
-    await this.storeItemRepository.save(storeItem);
-    return;
-  }
-
-  // For items with variations
-  let storeItem = await this.storeItemRepository.findOne({
-    where: { item: { id: item.id }, store: { id: store.id } },
-  });
-
-  if (!storeItem) {
-    storeItem = await this.storeItemRepository.save({
-      item,
-      store,
-      price: null,
-      stock: null,
-      stockAlert: null,
-      availableStock: null,
-      createdAt: new Date(),
+    let storeItemVariation = await this.storeItemVariationRepository.findOneBy({
+      variation: { id: variation.id },
+      storeItem: { id: storeItem.id }
     });
-  }
 
-  let storeItemVariation = await this.storeItemVariationRepository.findOneBy({
-    variation: {id: variation.id},
-    storeItem: {id: storeItem.id}
-  });
-
-  if (storeItemVariation) {
-    storeItemVariation.price = data.price;
-    storeItemVariation.stock = data.stock;
-  }else {
-    storeItemVariation = this.storeItemVariationRepository.create({
-      storeItem,
-      price: data.price,
-      cost: null,
-      stock: data.stock,
-      availableStock: data.stock,
-      variation,
-      availableFrom: new Date(),
-      availableTo: null,
-    })
-  }
+    if (storeItemVariation) {
+      storeItemVariation.price = data.price;
+      storeItemVariation.stock = data.stock;
+    } else {
+      storeItemVariation = this.storeItemVariationRepository.create({
+        storeItem,
+        price: data.price,
+        cost: null,
+        stock: data.stock,
+        availableStock: data.stock,
+        variation,
+        availableFrom: new Date(),
+        availableTo: null,
+      })
+    }
 
 
     await this.storeItemVariationRepository.save(storeItemVariation);
-}
-async findStoreItemsInStockWithAttributes(storeId: number) {
-  const storeItems = await this.storeItemRepository.find({
-    where: {
-      store: { id: storeId },
-      storeItemVariation: {
-        stock: MoreThan(0),
+  }
+  async findStoreItemsInStockWithAttributes(storeId: number) {
+    const storeItems = await this.storeItemRepository.find({
+      where: {
+        store: { id: storeId },
+        storeItemVariation: {
+          stock: MoreThan(0),
+        },
       },
-    },
-    relations: [
-      'item',
-      'storeItemVariation',
-      'storeItemVariation.variation',
-      'storeItemVariation.variation.attributeValues',
-      'storeItemVariation.variation.attributeValues.attribute',
-      'storeItemVariation.variation.attributeValues.attributeValue',
-    ],
-  });
+      relations: [
+        'item',
+        'storeItemVariation',
+        'storeItemVariation.variation',
+        'storeItemVariation.variation.attributeValues',
+        'storeItemVariation.variation.attributeValues.attribute',
+        'storeItemVariation.variation.attributeValues.attributeValue',
+      ],
+    });
 
-  return storeItems.map(storeItem => ({
-    id: storeItem.item.id,
-    name: storeItem.item.name,
-    description: storeItem.item.description,
-    thumbnail: storeItem.item.thumbnail,
-    hasVariations: storeItem.item.hasVariations,
-    basePrice: storeItem.price,
-    variations: storeItem.storeItemVariation.map(v => ({
-      id: v.id,
-      name: v.variation.variationName,
-      price: Number(v.price),
-      stock: v.stock,
-      attributes: v.variation.attributeValues.map(av => ({
-        attributeId: av.attribute.id,
-        attributeName: av.attribute.name  || '',
-        attributeValue: av.attributeValue.value || '',
-        valueId: av.id,
-      })),
-    }))
-  }));
-}
-
-
-async findAvailablePrices(storeItemId: number, variationId?: number) {
-  return this.storeItemVariationRepository.find({
-    relations: {
-      storeItem: {
-        item: true
-      }
-    },
-    order: { price: 'ASC' }, // optional
-  });
-}
-
-async findCheapestPrice(storeItemId: number, variationId?: number) {
-  return this.storeItemVariationRepository.find({
-    order: { price: 'ASC' },
-  });
-}
+    return storeItems.map(storeItem => ({
+      id: storeItem.item.id,
+      name: storeItem.item.name,
+      description: storeItem.item.description,
+      thumbnail: storeItem.item.thumbnail,
+      hasVariations: storeItem.item.hasVariations,
+      basePrice: storeItem.price,
+      variations: storeItem.storeItemVariation.map(v => ({
+        id: v.id,
+        name: v.variation.variationName,
+        price: Number(v.price),
+        stock: v.stock,
+        attributes: v.variation.attributeValues.map(av => ({
+          attributeId: av.attribute.id,
+          attributeName: av.attribute.name || '',
+          attributeValue: av.attributeValue.value || '',
+          valueId: av.id,
+        })),
+      }))
+    }));
+  }
 
 
-  
+  async findAvailablePrices(storeItemId: number, variationId?: number) {
+    return this.storeItemVariationRepository.find({
+      relations: {
+        storeItem: {
+          item: true
+        }
+      },
+      order: { price: 'ASC' }, // optional
+    });
+  }
+
+  async findCheapestPrice(storeItemId: number, variationId?: number) {
+    return this.storeItemVariationRepository.find({
+      order: { price: 'ASC' },
+    });
+  }
+
+
+
 
   async getItems(storeId: number): Promise<any> {
 
@@ -265,8 +288,8 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
     });
 
     const item = await this.itemsRepository.find({
-      where: {storeItem: {store}},
-      relations: ['brand','category']
+      where: { storeItem: { store } },
+      relations: ['brand', 'category']
     })
 
     return {
@@ -291,42 +314,42 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
 
     const res = await this.storeItemRepository.findOne({
       where: {
-        item: {id: item.id},
-        store: {id: store.id}
+        item: { id: item.id },
+        store: { id: store.id }
       },
-      relations: ['store','storeItemVariation','storeItemVariation.variation']
+      relations: ['store', 'storeItemVariation', 'storeItemVariation.variation']
     });
     return res;
-    }
+  }
 
-    async updateStoreItem(payload: UpdateStoreItemDto) {
-      const {storeItemId,storeItemVariationId,price,stock,isItemHasVariations} = payload;
+  async updateStoreItem(payload: UpdateStoreItemDto) {
+    const { storeItemId, storeItemVariationId, price, stock, isItemHasVariations } = payload;
 
-      if (isItemHasVariations) {
-        const storeItemVariation = await this.storeItemVariationRepository.findOne({
-          where: { id: storeItemVariationId },
-        });
-
-        if (!storeItemVariation) {
-          throw new NotFoundException(`Store item variation with ID ${storeItemVariationId} not found`);
-        }
-
-        storeItemVariation.price = price;
-        storeItemVariation.stock = stock;
-
-        return await this.storeItemVariationRepository.save(storeItemVariation);
-      }
-
-      const storeItem = await this.storeItemRepository.findOne({
-        where: { id: storeItemId },
+    if (isItemHasVariations) {
+      const storeItemVariation = await this.storeItemVariationRepository.findOne({
+        where: { id: storeItemVariationId },
       });
-      if (!storeItem) {
-        throw new NotFoundException(`Store item with ID ${storeItemId} not found`);
+
+      if (!storeItemVariation) {
+        throw new NotFoundException(`Store item variation with ID ${storeItemVariationId} not found`);
       }
-      storeItem.price = price;
-      storeItem.stock = stock;
-      return await this.storeItemRepository.save(storeItem);
+
+      storeItemVariation.price = price;
+      storeItemVariation.stock = stock;
+
+      return await this.storeItemVariationRepository.save(storeItemVariation);
     }
+
+    const storeItem = await this.storeItemRepository.findOne({
+      where: { id: storeItemId },
+    });
+    if (!storeItem) {
+      throw new NotFoundException(`Store item with ID ${storeItemId} not found`);
+    }
+    storeItem.price = price;
+    storeItem.stock = stock;
+    return await this.storeItemRepository.save(storeItem);
+  }
 
   remove(id: number) {
     return `This action removes a #${id} item`;
@@ -336,12 +359,12 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
   // brands
   async getBrands() {
     return await this.brandRepository.find({
-      where: {isActive: true}
+      where: { isActive: true }
     })
   }
 
   // categories
-  async addCategory(file: Express.Multer.File,payload: any) {
+  async addCategory(file: Express.Multer.File, payload: any) {
 
     const fileName = this.uploadService.saveFile(file, FilePaths.CATEGERORY);
     const category = this.categoryRepository.create({
@@ -353,8 +376,8 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
     return await this.categoryRepository.save(category)
   }
 
-  async updateCategory(id:number,file: Express.Multer.File,payload: any) {
-    const {name,status} = payload;
+  async updateCategory(id: number, file: Express.Multer.File, payload: any) {
+    const { name, status } = payload;
 
     const category = await this.categoryRepository.findOneBy({
       id
@@ -366,7 +389,7 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
 
     let filePath = null;
     if (file) {
-      filePath = this.uploadService.saveFile(file,FilePaths.CATEGERORY,FilePaths.CATEGERORY + category.image);
+      filePath = this.uploadService.saveFile(file, FilePaths.CATEGERORY, FilePaths.CATEGERORY + category.image);
     }
 
     category.name = name;
@@ -394,34 +417,34 @@ async findCheapestPrice(storeItemId: number, variationId?: number) {
     })
   }
 
-async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): Promise<Category[]> {
-  const query = this.categoryRepository.createQueryBuilder('category')
-    .leftJoinAndSelect('category.moduleCategories', 'moduleCategory')
-    .leftJoinAndSelect('category.children', 'children');
+  async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): Promise<Category[]> {
+    const query = this.categoryRepository.createQueryBuilder('category')
+      .leftJoinAndSelect('category.moduleCategories', 'moduleCategory')
+      .leftJoinAndSelect('category.children', 'children');
 
-  if (moduleId) {
-    query.andWhere('moduleCategory.moduleId = :moduleId', { moduleId });
+    if (moduleId) {
+      query.andWhere('moduleCategory.moduleId = :moduleId', { moduleId });
+    }
+
+    if (parentId === null) {
+      query.andWhere('category.parentId IS NULL');
+    } else {
+      query.andWhere('category.parentId = :parentId', { parentId });
+    }
+
+    const categories = await query.getMany();
+
+    // Recursively load children
+    for (const category of categories) {
+      category.children = await this.getCategoryHierarchy(category.id);
+    }
+
+    return categories;
   }
 
-  if (parentId === null) {
-    query.andWhere('category.parentId IS NULL');
-  } else {
-    query.andWhere('category.parentId = :parentId', { parentId });
-  }
 
-  const categories = await query.getMany();
-
-  // Recursively load children
-  for (const category of categories) {
-    category.children = await this.getCategoryHierarchy(category.id);
-  }
-
-  return categories;
-}
-
-  
   async getItemsByFilter(filterDto: FindItemsByFilterDto) {
-    const { categoryId, brandId, attributeValueIds} = filterDto;
+    const { categoryId, brandId, attributeValueIds } = filterDto;
     const items = await this.storeItemRepository.find({
       where: {
         item: {
@@ -444,27 +467,27 @@ async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): P
   }
 
   async getItemsByFilter1(filterDto: FindItemsByFilterDto) {
-    const { categoryId, brandId, attributeValueIds} = filterDto;
+    const { categoryId, brandId, attributeValueIds } = filterDto;
 
 
     const categoryChildren = await this.getCategoryHierarchy(categoryId);
 
     const categoryIds = this.flattenCategoryIds(categoryChildren, [categoryId]);
 
-    const whereConditions:  any = {
+    const whereConditions: any = {
       item: {
-        category: { id: In(categoryIds) }, 
+        category: { id: In(categoryIds) },
       },
     };
 
     if (attributeValueIds && attributeValueIds.length > 0) {
       whereConditions.itemVariation = {
         attributes: {
-          attributeValue: {id: In(attributeValueIds)}
+          attributeValue: { id: In(attributeValueIds) }
         }
       }
     }
-  
+
     if (brandId) {
       whereConditions.item.brand = { id: brandId };
     }
@@ -485,13 +508,13 @@ async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): P
         // },
       }
     })
-    return  items;
+    return items;
   }
 
   async getItemDetailsByFilter(storeItemId: any) {
     const storeItem = await this.storeItemRepository.findOne({
       where: {
-       id: storeItemId,
+        id: storeItemId,
       },
       relations: {
         store: true,
@@ -516,69 +539,69 @@ async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): P
       }
     });
 
-      // Group attributes
-  const attributeMap = new Map<number, {
-    attributeId: number;
-    attributeName: string;
-    values: { valueId: number, attributeValue: string}[];
-  }>();
+    // Group attributes
+    const attributeMap = new Map<number, {
+      attributeId: number;
+      attributeName: string;
+      values: { valueId: number, attributeValue: string }[];
+    }>();
 
-  for (const v of storeItem.storeItemVariation) {
-    for (const av of v.variation.attributeValues) {
-      const key = av.attribute.id;
-      if (!attributeMap.has(key)) {
-        attributeMap.set(key, {
-          attributeId: key,
-          attributeName: av.attribute.name,
-          values: []
-        });
-      }
+    for (const v of storeItem.storeItemVariation) {
+      for (const av of v.variation.attributeValues) {
+        const key = av.attribute.id;
+        if (!attributeMap.has(key)) {
+          attributeMap.set(key, {
+            attributeId: key,
+            attributeName: av.attribute.name,
+            values: []
+          });
+        }
 
-      const exists = attributeMap.get(key)!.values.some(val => val.valueId === av.attributeValue.id);
-      if (!exists) {
-        attributeMap.get(key)!.values.push({
-          valueId: av.attributeValue.id,
-          attributeValue: av.attributeValue.value,
-        });
+        const exists = attributeMap.get(key)!.values.some(val => val.valueId === av.attributeValue.id);
+        if (!exists) {
+          attributeMap.get(key)!.values.push({
+            valueId: av.attributeValue.id,
+            attributeValue: av.attributeValue.value,
+          });
+        }
       }
     }
-  }
 
-  // List of variations
-  const variations = storeItem.storeItemVariation.map(v => ({
-    id: v.id,
-    price: Number(v.price),
-    stock: v.stock,
-    attributeValueIds: v.variation.attributeValues.map(av => av.attributeValue.id)
-  }));
-    
+    // List of variations
+    const variations = storeItem.storeItemVariation.map(v => ({
+      id: v.id,
+      price: Number(v.price),
+      stock: v.stock,
+      attributeValueIds: v.variation.attributeValues.map(av => av.attributeValue.id)
+    }));
+
 
     const res = {
-    itemId: storeItem.item.id,
-    storeItemId: storeItem.id,
-    name: storeItem.item.name,
-    description: storeItem.item.description,
-    thumbnail: storeItem.item.thumbnail,
-    hasVariations: storeItem.item.hasVariations,
-    basePrice: storeItem.price,
-    stock: storeItem.stock,
-    store: storeItem.store,
-    category: {
+      itemId: storeItem.item.id,
+      storeItemId: storeItem.id,
+      name: storeItem.item.name,
+      description: storeItem.item.description,
+      thumbnail: storeItem.item.thumbnail,
+      hasVariations: storeItem.item.hasVariations,
+      basePrice: storeItem.price,
+      stock: storeItem.stock,
+      store: storeItem.store,
+      category: {
         id: storeItem.item.category.id,
         name: storeItem.item.category.name,
       },
       brand: storeItem.item.brand ? {
         id: storeItem.item.brand.id,
         name: storeItem.item.brand.name,
-      }  : null,
+      } : null,
       images: storeItem.item.images.length > 0 ? storeItem.item.images.map(image => ({
         id: image.id,
         imageUrl: image.image_url
       })) : null,
       attributes: Array.from(attributeMap.values()),
       variations,
-  }
-  return res;
+    }
+    return res;
   }
 
   private flattenCategoryIds(categories: Category[], result: number[] = []): number[] {
@@ -595,15 +618,15 @@ async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): P
     const uploadPromises = files.map(async (file) => {
       const filename = this.uploadService.saveFile(file, FilePaths.ITEMS);
       if (!filename) throw new Error(`Failed to save file: ${file.originalname}`);
-  
+
       const itemImage = this.itemImagesRepository.create({
         item: { id: itemId },
         image_url: filename,
       });
-  
+
       await this.itemImagesRepository.save(itemImage);
     });
-  
+
     try {
       await Promise.all(uploadPromises);
     } catch (error) {
@@ -615,24 +638,24 @@ async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): P
   async getItemImage(itemId: number) {
     return await this.itemImagesRepository.find({
       where: {
-        item: {id: itemId},
+        item: { id: itemId },
       }
     })
   }
-  
+
   async removeItemImage(id: number) {
     const itemImage = await this.itemImagesRepository.findOne({ where: { id } });
-  
+
     if (!itemImage) {
       throw new NotFoundException(`Image with ID ${id} not found. Deletion not possible.`);
     }
-  
+
     try {
       await this.itemImagesRepository.remove(itemImage);
-  
+
       this.uploadService.deleteFile(FilePaths.ITEMS + itemImage.image_url);
-  
-      return; 
+
+      return;
     } catch (error) {
       throw new InternalServerErrorException('An error occurred while deleting the image.');
     }
@@ -640,26 +663,23 @@ async getCategoryHierarchy(parentId: number | null = null, moduleId?: number): P
 
 
   // use like
-  async getItemByName(name: string) {
-    const item =  await this.itemsRepository.find({
-      relations: {
-        category: true,
-        itemUnit: true,
-        brand: true,
-        storeItem: {
-          storeItemVariation: {
-            variation: {
-              attributeValues: {
-                attribute: true,
-                attributeValue: true
-              }
-            }
-          }
-        }
-      },
-      where: {name: Like(`%${name}%`)}
-    });
+  async getItemByName(name: string, storeId: number) {
+    const item = await this.itemsRepository
+      .createQueryBuilder('item')
+      .leftJoinAndSelect('item.category', 'category')
+      .leftJoinAndSelect('item.itemUnit', 'itemUnit')
+      .leftJoinAndSelect('item.brand', 'brand')
+      .leftJoinAndSelect('item.storeItem', 'storeItem', 'storeItem.storeId = :storeId', { storeId })
+      .leftJoinAndSelect('storeItem.storeItemVariation', 'storeItemVariation')
+      .leftJoinAndSelect('storeItemVariation.variation', 'variation')
+      .leftJoinAndSelect('variation.attributeValues', 'attributeValues')
+      .leftJoinAndSelect('attributeValues.attribute', 'attribute')
+      .leftJoinAndSelect('attributeValues.attributeValue', 'attributeValue')
+      .where('item.name LIKE :name', { name: `%${name}%` })
+      .getMany();
+
     return item;
   }
-    
+
+
 }
